@@ -1,6 +1,7 @@
 import { CATEGORIES } from '@/data/categories';
 import Field, { inputCls } from '@/components/ui/Field';
 import Icon from '@/components/ui/Icon';
+import RichTextEditor from '@/components/ui/RichTextEditor';
 
 export default function StepBasics({ draft, patch, errors }) {
   return (
@@ -39,13 +40,7 @@ export default function StepBasics({ draft, patch, errors }) {
         {errors.cat && <span className="block -mt-3 font-body-sm text-body-sm text-error">{errors.cat}</span>}
 
         <Field label="One-line description">
-          <textarea
-            value={draft.desc}
-            onChange={(e) => patch({ desc: e.target.value })}
-            rows={2}
-            placeholder="What do you offer?"
-            className={`${inputCls} border-outline-variant resize-y`}
-          />
+          <RichTextEditor value={draft.desc} onChange={(desc) => patch({ desc })} rows={2} placeholder="What do you offer?" className="mt-2" />
           <span className="block mt-1.5 font-body-sm text-body-sm text-on-surface-variant">Keep it short. Neighbors read this first.</span>
         </Field>
 

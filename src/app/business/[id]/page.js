@@ -16,6 +16,7 @@ import SiteShell from '@/components/layout/SiteShell';
 import Icon from '@/components/ui/Icon';
 import MonoTile from '@/components/ui/MonoTile';
 import Panel from '@/components/ui/Panel';
+import RichText from '@/components/ui/RichText';
 import EnquiryForm from '@/components/business/EnquiryForm';
 
 const BLOBS = ['blob-shape-1', 'blob-shape-2', 'blob-shape-3', 'blob-shape-4', 'blob-shape-5', 'blob-shape-1'];
@@ -135,7 +136,7 @@ export default function BusinessPage() {
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] gap-6 pb-16 items-start">
           <div className="flex flex-col gap-6">
             <Panel title="About the business">
-              <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed">{business.desc}</p>
+              <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed"><RichText text={business.desc} /></p>
             </Panel>
 
             <Panel title="Products, services and prices">

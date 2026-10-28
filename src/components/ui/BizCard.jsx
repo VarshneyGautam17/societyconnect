@@ -10,6 +10,7 @@ import { recordEvent } from '@/store/slices/eventsSlice';
 import { selectIsSaved } from '@/store/selectors';
 import { useToast } from '@/components/ui/Toast';
 import Icon from '@/components/ui/Icon';
+import RichText from '@/components/ui/RichText';
 
 /** The organic business card used on the homepage, directory and onboarding/edit previews. */
 export default function BizCard({ business }) {
@@ -61,7 +62,7 @@ export default function BizCard({ business }) {
           <Icon name="pin" className="text-sm text-outline" />
           <span>{business.area}, {socShort(business.society)}</span>
         </div>
-        <p className="font-body-sm text-body-sm text-on-surface-variant/90 line-clamp-2 mb-4">{business.desc}</p>
+        <p className="font-body-sm text-body-sm text-on-surface-variant/90 line-clamp-2 mb-4"><RichText text={business.desc} /></p>
       </div>
       <div className="pt-4 border-t border-outline-variant/30 flex items-center gap-2">
         <Link

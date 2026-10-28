@@ -2,6 +2,7 @@ import { catOf } from '@/data/categories';
 import { socShort } from '@/data/societies';
 import { bizImg, blobOf } from '@/lib/images';
 import Icon from '@/components/ui/Icon';
+import RichText from '@/components/ui/RichText';
 
 /** Read-only version of BizCard — used for the onboarding/edit-page "preview as resident" views,
  *  where the save heart and contact buttons shouldn't be wired up to real state yet. */
@@ -29,7 +30,9 @@ export default function PreviewCard({ business }) {
           <Icon name="pin" className="text-sm text-outline" />
           <span>{business.area || 'Your area'}, {socShort(business.society)}</span>
         </div>
-        <p className="font-body-sm text-body-sm text-on-surface-variant/90 line-clamp-2 mb-4">{business.desc || 'Your one-line description will show here.'}</p>
+        <p className="font-body-sm text-body-sm text-on-surface-variant/90 line-clamp-2 mb-4">
+          {business.desc ? <RichText text={business.desc} /> : 'Your one-line description will show here.'}
+        </p>
       </div>
       <div className="pt-4 border-t border-outline-variant/30">
         <span className="w-full inline-flex items-center justify-center px-4 py-2.5 rounded-full bg-primary text-on-primary font-label-md text-label-md font-semibold">View business</span>

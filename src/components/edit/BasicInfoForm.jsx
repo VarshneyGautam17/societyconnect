@@ -1,5 +1,6 @@
 import { CATEGORIES } from '@/data/categories';
 import { inputCls } from '@/components/ui/Field';
+import RichTextEditor from '@/components/ui/RichTextEditor';
 
 export default function BasicInfoForm({ v, patch }) {
   return (
@@ -10,10 +11,10 @@ export default function BasicInfoForm({ v, patch }) {
           Business name
           <input value={v.name} onChange={(e) => patch({ name: e.target.value })} className={`${inputCls} border-outline-variant`} />
         </label>
-        <label className="block font-label-md text-label-md font-semibold text-on-surface">
+        <div className="block font-label-md text-label-md font-semibold text-on-surface">
           Description
-          <textarea value={v.desc} onChange={(e) => patch({ desc: e.target.value })} rows={3} className={`${inputCls} border-outline-variant`} />
-        </label>
+          <RichTextEditor value={v.desc} onChange={(desc) => patch({ desc })} rows={3} className="mt-2" />
+        </div>
         <label className="block font-label-md text-label-md font-semibold text-on-surface">
           Category
           <select value={v.cat} onChange={(e) => patch({ cat: e.target.value })} className={`${inputCls} border-outline-variant`}>
