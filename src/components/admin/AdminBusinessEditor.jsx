@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { adminUpdateBusiness } from '@/app/admin/actions';
-import { dbRowToFormVendor, formVendorToDbPatch } from '@/lib/adminBusinessMapper';
+import { dbRowToFormVendor, formVendorToDbPatch } from '@/lib/businessMapper';
 import { useToast } from '@/components/ui/Toast';
 import BasicInfoForm from '@/components/edit/BasicInfoForm';
 import PhotoManager from '@/components/edit/PhotoManager';

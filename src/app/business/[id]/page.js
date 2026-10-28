@@ -11,6 +11,8 @@ import { cloudinaryUrl } from '@/lib/cloudinary';
 import { selectBusinessById, selectIsSaved } from '@/store/selectors';
 import { recordEvent } from '@/store/slices/eventsSlice';
 import { toggleSaved } from '@/store/slices/savedSlice';
+import { createClient } from '@/lib/supabase/client';
+import { dbRowToFormVendor } from '@/lib/businessMapper';
 import { useToast } from '@/components/ui/Toast';
 import SiteShell from '@/components/layout/SiteShell';
 import Icon from '@/components/ui/Icon';
@@ -25,14 +27,39 @@ export default function BusinessPage() {
   const { id } = useParams();
   const dispatch = useDispatch();
   const toast = useToast();
-  const business = useSelector((state) => selectBusinessById(state, id));
+  const localBusiness = useSelector((state) => selectBusinessById(state, id));
+  /* The 20 demo businesses + "mine" live in Redux/localStorage; a real
+     published vendor lives in Supabase and isn't in that store at all, so
+     this is the fallback that makes a real listing (and admin previews of
+     pending ones) viewable, and is what lets its view/contact events be
+     real rows in Supabase instead of this browser's localStorage. */
+  const [remoteBusiness, setRemoteBusiness] = useState(null);
+  const [remoteChecked, setRemoteChecked] = useState(false);
+  const business = localBusiness || remoteBusiness;
+  const isRemote = !localBusiness && !!remoteBusiness;
   const saved = useSelector((state) => (business ? selectIsSaved(state, business.id) : false));
   const [revealed, setRevealed] = useState(false);
 
   useEffect(() => {
-    if (business) dispatch(recordEvent({ type: 'view', id: business.id }));
+    if (localBusiness || !id) return;
+    let cancelled = false;
+    createClient().from('businesses').select('*').eq('id', id).maybeSingle().then(({ data }) => {
+      if (cancelled) return;
+      if (data) setRemoteBusiness(dbRowToFormVendor(data));
+      setRemoteChecked(true);
+    });
+    return () => { cancelled = true; };
+  }, [id, localBusiness]);
+
+  useEffect(() => {
+    if (!business) return;
+    if (isRemote) {
+      createClient().from('events').insert({ business_id: business.id, type: 'view' });
+    } else {
+      dispatch(recordEvent({ type: 'view', id: business.id }));
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [business?.id]);
+  }, [business?.id, isRemote]);
 
   useEffect(() => {
     if (business) document.title = `${business.name} | SocietyConnect`;
@@ -49,6 +76,7 @@ export default function BusinessPage() {
   }, [business, photoSeed]);
 
   if (!business) {
+    if (!remoteChecked) return null;
     return (
       <SiteShell active="business">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
@@ -77,7 +105,11 @@ export default function BusinessPage() {
     toast(saved ? 'Removed from saved' : 'Saved. Find it under Saved.');
   }
   function onContact(type) {
-    dispatch(recordEvent({ type, id: business.id }));
+    if (isRemote) {
+      createClient().from('events').insert({ business_id: business.id, type });
+    } else {
+      dispatch(recordEvent({ type, id: business.id }));
+    }
     toast(type === 'whatsapp' ? 'Demo: this would open WhatsApp. Logged as a contact attempt.' : 'Demo: this would start a call. Logged as a contact attempt.');
   }
 
@@ -215,7 +247,7 @@ export default function BusinessPage() {
               <p className="font-body-sm text-body-sm text-on-surface-variant mt-3">{business.area}, {s.name}, {s.place}. Exact flat shared only after you enquire.</p>
             </Panel>
             <Panel title="Send an enquiry" id="enquiry">
-              <EnquiryForm businessId={business.id} />
+              <EnquiryForm businessId={business.id} isRemote={isRemote} />
             </Panel>
           </aside>
         </div>

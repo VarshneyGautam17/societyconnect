@@ -19,7 +19,8 @@ const STATUS_STYLE = {
 
 const EXPORT_COLUMNS = [
   ['name', 'Name'], ['cat', 'Category'], ['society', 'Society'], ['area', 'Area'],
-  ['status', 'Status'], ['phone', 'Phone'], ['whatsapp', 'WhatsApp'], ['verified', 'Verified'],
+  ['status', 'Status'], ['views', 'Views'], ['contacts', 'Contact attempts'],
+  ['phone', 'Phone'], ['whatsapp', 'WhatsApp'], ['verified', 'Verified'],
   ['desc', 'Description'], ['offer', 'Offer'], ['created_at', 'Created'], ['id', 'ID']
 ];
 
@@ -60,6 +61,10 @@ function Row({ business }) {
       <td className="py-3 pr-4 font-body-sm text-body-sm text-on-surface-variant whitespace-nowrap">{catOf(business.cat).name}</td>
       <td className="py-3 pr-4">
         <span className={`font-label-sm text-label-sm font-bold px-2.5 py-1 rounded-full whitespace-nowrap ${STATUS_STYLE[business.status] || ''}`}>{business.status}</span>
+      </td>
+      <td className="py-3 pr-4 font-body-sm text-body-sm text-on-surface whitespace-nowrap">
+        <strong className="font-label-md text-label-md text-on-surface">{business.views}</strong> views
+        <span className="block text-on-surface-variant">{business.contacts} contacts</span>
       </td>
       <td className="py-3 pr-4 font-body-sm text-body-sm text-on-surface-variant whitespace-nowrap">
         {new Date(business.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -134,6 +139,7 @@ export default function BusinessesTable({ businesses }) {
               <th className="py-3 px-4 font-semibold">Business</th>
               <th className="py-3 px-4 font-semibold">Category</th>
               <th className="py-3 px-4 font-semibold">Status</th>
+              <th className="py-3 px-4 font-semibold">Traffic</th>
               <th className="py-3 px-4 font-semibold">Created</th>
               <th className="py-3 px-4 font-semibold">Actions</th>
             </tr>

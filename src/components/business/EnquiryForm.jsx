@@ -4,24 +4,35 @@ import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { addEnquiry } from '@/store/slices/enquiriesSlice';
 import { recordEvent } from '@/store/slices/eventsSlice';
+import { createClient } from '@/lib/supabase/client';
 import { useToast } from '@/components/ui/Toast';
 
-export default function EnquiryForm({ businessId }) {
+export default function EnquiryForm({ businessId, isRemote = false }) {
   const dispatch = useDispatch();
   const toast = useToast();
   const [name, setName] = useState('');
   const [msg, setMsg] = useState('');
   const [error, setError] = useState('');
 
-  function onSubmit(e) {
+  async function onSubmit(e) {
     e.preventDefault();
     if (!name.trim() || !msg.trim()) {
       setError('Please add your name and a short message.');
       return;
     }
     setError('');
-    dispatch(addEnquiry({ biz: businessId, who: name.trim(), msg: msg.trim(), t: Date.now() }));
-    dispatch(recordEvent({ type: 'enquiry', id: businessId }));
+    if (isRemote) {
+      const supabase = createClient();
+      const { error: insertError } = await supabase.from('enquiries').insert({ business_id: businessId, who: name.trim(), msg: msg.trim() });
+      if (insertError) {
+        toast('Could not send that enquiry. Try again.');
+        return;
+      }
+      supabase.from('events').insert({ business_id: businessId, type: 'enquiry' });
+    } else {
+      dispatch(addEnquiry({ biz: businessId, who: name.trim(), msg: msg.trim(), t: Date.now() }));
+      dispatch(recordEvent({ type: 'enquiry', id: businessId }));
+    }
     setName('');
     setMsg('');
     toast('Enquiry sent. The vendor will see it in their dashboard.');
