@@ -107,7 +107,7 @@ export default function BusinessesTable({ businesses }) {
 
   function onExport() {
     const rows = filtered.map((b) => ({ ...b, desc: stripRichText(b.desc), verified: b.verified ? 'yes' : 'no' }));
-    downloadCsv(`societyconnect-businesses-${new Date().toISOString().slice(0, 10)}.csv`, rows, EXPORT_COLUMNS);
+    downloadCsv(`societyspot-businesses-${new Date().toISOString().slice(0, 10)}.csv`, rows, EXPORT_COLUMNS);
   }
 
   return (

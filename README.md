@@ -1,6 +1,6 @@
-# SocietyConnect (Next.js + Redux)
+# SocietySpot (Next.js + Redux)
 
-The React rewrite of the static SocietyConnect mockup. One Next.js app (App Router), so there's
+The React rewrite of the static SocietySpot mockup. One Next.js app (App Router), so there's
 nothing separate to deploy — pages, components and state all ship together.
 
 ## Run it

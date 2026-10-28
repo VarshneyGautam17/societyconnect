@@ -10,7 +10,7 @@ export default function Footer() {
             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary">
               <Icon name="pin" className="text-sm" filled />
             </div>
-            <span className="font-headline-sm text-headline-sm font-bold text-on-surface">SocietyConnect</span>
+            <span className="font-headline-sm text-headline-sm font-bold text-on-surface">SocietySpot</span>
           </div>
           <p className="font-body-sm text-body-sm text-on-surface-variant mb-4">
             Built for trusted residential gated communities across India. A hyperlocal marketplace connecting neighbors.

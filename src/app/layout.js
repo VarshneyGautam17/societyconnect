@@ -2,7 +2,7 @@ import './globals.css';
 import Providers from './providers';
 
 export const metadata = {
-  title: 'SocietyConnect: trusted local businesses in your society',
+  title: 'SocietySpot: trusted local businesses in your society',
   description: 'Discover and list trusted local businesses in your residential society.'
 };
 

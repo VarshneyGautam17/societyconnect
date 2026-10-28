@@ -1,4 +1,4 @@
--- SocietyConnect backend schema.
+-- SocietySpot backend schema.
 -- Run this once in Supabase: Dashboard -> SQL Editor -> New query -> paste this whole file -> Run.
 --
 -- Scope: businesses (vendor listings, with an admin approval lifecycle),
@@ -177,8 +177,6 @@ create table if not exists enquiries (
   business_id uuid not null references businesses(id) on delete cascade,
   who text not null check (char_length(who) between 1 and 100),
   msg text not null check (char_length(msg) between 1 and 1000),
-  phone text not null default '',
-  phone_verified boolean not null default false,
   status text not null default 'New' check (status in ('New', 'Replied')),
   created_at timestamptz not null default now()
 );
@@ -187,10 +185,14 @@ create index if not exists enquiries_business_idx on enquiries (business_id, cre
 
 alter table enquiries enable row level security;
 
--- No public insert policy here on purpose: an enquiry is only ever created
--- by the sendEnquiry server action, after phone OTP verification, using the
--- service-role client (which bypasses RLS entirely). A direct anon insert
--- is never a legitimate path, so there's nothing to grant it.
+-- Any visitor can submit an enquiry to an approved business. Column checks
+-- above cap length; add a captcha (e.g. Cloudflare Turnstile) in front of
+-- this once traffic is real -- an open insert policy is spammable by design.
+create policy "anyone can submit an enquiry"
+  on enquiries for insert
+  with check (
+    exists (select 1 from businesses b where b.id = business_id and b.status = 'approved')
+  );
 
 -- Only the business owner can read or update (e.g. mark "Replied") their own enquiries.
 create policy "owners can read their own enquiries"
@@ -234,22 +236,3 @@ create policy "owners can read their own events"
 create policy "admins can read all events"
   on events for select
   using (is_admin());
-
--- ---------------------------------------------------------------------------
--- phone_otp_requests -- rate-limit log for phone verification (MSG91 sends
--- the actual OTP and tracks the code itself; this table only exists so the
--- app can enforce "not too many sends to this number" before paying for
--- another SMS). No RLS policies at all on purpose: the anon/authenticated
--- roles have zero access, so this is reachable only via the service-role
--- client inside the sendPhoneOtp/verifyPhoneOtp server actions.
--- ---------------------------------------------------------------------------
-create table if not exists phone_otp_requests (
-  id uuid primary key default gen_random_uuid(),
-  phone text not null,
-  purpose text not null check (purpose in ('enquiry', 'vendor_signup')),
-  created_at timestamptz not null default now()
-);
-
-create index if not exists phone_otp_requests_phone_idx on phone_otp_requests (phone, purpose, created_at desc);
-
-alter table phone_otp_requests enable row level security;

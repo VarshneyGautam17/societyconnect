@@ -62,7 +62,7 @@ export default function BusinessPage() {
   }, [business?.id, isRemote]);
 
   useEffect(() => {
-    if (business) document.title = `${business.name} | SocietyConnect`;
+    if (business) document.title = `${business.name} | SocietySpot`;
   }, [business]);
 
   const photoSeed = business ? seedOf(business.id) : 0;
@@ -187,7 +187,7 @@ export default function BusinessPage() {
             {business.offer && (
               <Panel title="Offers" className="bg-gradient-to-br from-amber-50 to-orange-50/70 border-amber-200/60">
                 <strong className="block font-headline-sm text-headline-sm text-amber-900 mb-1">{business.offer}</strong>
-                <p className="font-body-sm text-body-sm text-amber-800">{business.offerValid || 'Mention SocietyConnect when you order.'}</p>
+                <p className="font-body-sm text-body-sm text-amber-800">{business.offerValid || 'Mention SocietySpot when you order.'}</p>
               </Panel>
             )}
 

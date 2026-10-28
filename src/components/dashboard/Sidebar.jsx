@@ -18,7 +18,7 @@ export default function Sidebar({ vendor, live, onSoonClick }) {
     <aside className="bg-surface-container-lowest border-b lg:border-b-0 lg:border-r border-outline-variant/40 p-4 lg:p-5 flex lg:flex-col items-center lg:items-stretch gap-4 lg:gap-5 overflow-x-auto">
       <Link href="/" className="hidden lg:flex items-center gap-2 px-2">
         <span className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary"><Icon name="pin" className="text-base" filled /></span>
-        <span className="font-headline-sm text-headline-sm text-primary tracking-tight">SocietyConnect</span>
+        <span className="font-headline-sm text-headline-sm text-primary tracking-tight">SocietySpot</span>
       </Link>
       <nav className="flex lg:flex-col gap-1 flex-none" aria-label="Vendor navigation">
         {LINKS.map((l) => (

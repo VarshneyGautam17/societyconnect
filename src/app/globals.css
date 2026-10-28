@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* SocietyConnect design system tokens, ported to Tailwind v4's CSS-first config.
+/* SocietySpot design system tokens, ported to Tailwind v4's CSS-first config.
    Same palette, radii and type scale as the original static build. */
 @theme {
   --color-outline-variant: #c7c4d8;

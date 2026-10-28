@@ -34,7 +34,7 @@ function buildVendor(draft) {
   vendor.phone = '+91 ' + num.replace(/^(\d{2})\d{3}(\d{3})(\d{2})$/, '$1XXX XXX$3');
   vendor.whatsapp = vendor.phone;
   vendor.offer = draft.offer;
-  vendor.offerValid = draft.offer ? 'Mention SocietyConnect when you order.' : '';
+  vendor.offerValid = draft.offer ? 'Mention SocietySpot when you order.' : '';
   vendor.items = draft.items.filter((r) => r[0].trim()).map((r) => [r[0], r[1] || '', r[2] || 'On request']);
   vendor.published = true;
   return vendor;

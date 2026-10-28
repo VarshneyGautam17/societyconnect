@@ -32,7 +32,7 @@ export default function Header({ active, minimal = false }) {
       <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary shadow-sm group-hover:scale-105 transition-transform flex-none">
         <Icon name="pin" className="text-xl" filled />
       </div>
-      <span className="font-headline-sm text-headline-sm text-primary tracking-tight whitespace-nowrap">SocietyConnect</span>
+      <span className="font-headline-sm text-headline-sm text-primary tracking-tight whitespace-nowrap">SocietySpot</span>
     </Link>
   );
 
