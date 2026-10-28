@@ -1,26 +1,117 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* SocietyConnect design system tokens, ported to Tailwind v4's CSS-first config.
+   Same palette, radii and type scale as the original static build. */
+@theme {
+  --color-outline-variant: #c7c4d8;
+  --color-on-secondary-fixed-variant: #7c2e19;
+  --color-on-surface: #191b24;
+  --color-tertiary-fixed: #d0eacb;
+  --color-on-surface-variant: #464555;
+  --color-primary: #3525cd;
+  --color-surface-container-high: #e7e7f4;
+  --color-surface-container-low: #f3f2ff;
+  --color-primary-fixed: #e2dfff;
+  --color-surface: #faf8ff;
+  --color-error: #ba1a1a;
+  --color-surface-dim: #d9d9e6;
+  --color-inverse-surface: #2e303a;
+  --color-tertiary-container: #4f664e;
+  --color-secondary-fixed-dim: #ffb4a1;
+  --color-on-error-container: #93000a;
+  --color-on-background: #191b24;
+  --color-primary-container: #4f46e5;
+  --color-tertiary: #384e38;
+  --color-on-tertiary-container: #c9e3c5;
+  --color-surface-tint: #4d44e3;
+  --color-primary-fixed-dim: #c3c0ff;
+  --color-surface-container-lowest: #ffffff;
+  --color-on-primary-fixed: #0f0069;
+  --color-secondary-container: #fc9174;
+  --color-inverse-primary: #c3c0ff;
+  --color-on-error: #ffffff;
+  --color-on-tertiary: #ffffff;
+  --color-on-primary: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-tertiary-fixed-variant: #364c36;
+  --color-secondary: #9a442d;
+  --color-on-primary-container: #dad7ff;
+  --color-background: #faf8ff;
+  --color-on-secondary-fixed: #3c0800;
+  --color-surface-container-highest: #e1e1ef;
+  --color-surface-bright: #faf8ff;
+  --color-surface-container: #ededfa;
+  --color-on-secondary-container: #742814;
+  --color-secondary-fixed: #ffdbd2;
+  --color-tertiary-fixed-dim: #b4cdb0;
+  --color-on-tertiary-fixed: #0b200d;
+  --color-on-secondary: #ffffff;
+  --color-outline: #777587;
+  --color-on-primary-fixed-variant: #3323cc;
+  --color-inverse-on-surface: #f0f0fd;
+  --color-surface-variant: #e1e1ef;
+
+  --radius: 1rem;
+  --radius-lg: 2rem;
+  --radius-xl: 3rem;
+  --radius-full: 9999px;
+
+  --font-label-sm: "Plus Jakarta Sans", sans-serif;
+  --font-body-md: "Plus Jakarta Sans", sans-serif;
+  --font-body-lg: "Plus Jakarta Sans", sans-serif;
+  --font-headline-lg-mobile: "Plus Jakarta Sans", sans-serif;
+  --font-headline-lg: "Plus Jakarta Sans", sans-serif;
+  --font-label-lg: "Plus Jakarta Sans", sans-serif;
+  --font-display-mobile: "Plus Jakarta Sans", sans-serif;
+  --font-headline-md: "Plus Jakarta Sans", sans-serif;
+  --font-label-md: "Plus Jakarta Sans", sans-serif;
+  --font-body-sm: "Plus Jakarta Sans", sans-serif;
+  --font-display: "Plus Jakarta Sans", sans-serif;
+  --font-headline-sm: "Plus Jakarta Sans", sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+/* Custom text-size utilities (size + line-height + letter-spacing + weight bundled together,
+   same values as the original fontSize scale) — defined explicitly rather than relying on
+   Tailwind v4's compound --text-*--line-height convention, so weight/tracking always apply. */
+@utility text-label-sm { font-size: 11px; line-height: 14px; letter-spacing: 0.03em; font-weight: 500; }
+@utility text-body-md { font-size: 15px; line-height: 24px; letter-spacing: 0em; font-weight: 400; }
+@utility text-body-lg { font-size: 18px; line-height: 28px; letter-spacing: -0.005em; font-weight: 400; }
+@utility text-headline-lg-mobile { font-size: 28px; line-height: 36px; letter-spacing: -0.015em; font-weight: 700; }
+@utility text-headline-lg { font-size: 36px; line-height: 44px; letter-spacing: -0.02em; font-weight: 700; }
+@utility text-label-lg { font-size: 14px; line-height: 20px; letter-spacing: 0.01em; font-weight: 600; }
+@utility text-display-mobile { font-size: 36px; line-height: 44px; letter-spacing: -0.025em; font-weight: 700; }
+@utility text-headline-md { font-size: 24px; line-height: 32px; letter-spacing: -0.015em; font-weight: 600; }
+@utility text-label-md { font-size: 12px; line-height: 16px; letter-spacing: 0.02em; font-weight: 600; }
+@utility text-body-sm { font-size: 13px; line-height: 20px; letter-spacing: 0em; font-weight: 400; }
+@utility text-display { font-size: 56px; line-height: 64px; letter-spacing: -0.03em; font-weight: 700; }
+@utility text-headline-sm { font-size: 20px; line-height: 28px; letter-spacing: -0.01em; font-weight: 600; }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+html { scroll-behavior: smooth; }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-background);
+  color: var(--color-on-surface);
 }
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  line-height: 1;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Asymmetrical organic pebble contours, used for every photo frame */
+.blob-shape-1 { border-radius: 62% 38% 70% 30% / 45% 58% 42% 55%; }
+.blob-shape-2 { border-radius: 48% 52% 68% 32% / 40% 65% 35% 60%; }
+.blob-shape-3 { border-radius: 54% 46% 38% 62% / 60% 41% 59% 40%; }
+.blob-shape-4 { border-radius: 70% 30% 50% 50% / 30% 60% 40% 70%; }
+.blob-shape-5 { border-radius: 42% 58% 65% 35% / 55% 38% 62% 45%; }
+
+@keyframes gentleDrift {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(0.8deg); }
+}
+.animate-gentle-drift { animation: gentleDrift 7s ease-in-out infinite; }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
