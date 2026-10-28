@@ -1,4 +1,5 @@
 import { catOf, SOCIETY_IMAGES } from '@/data/categories';
+import { cloudinaryUrl } from '@/lib/cloudinary';
 
 /* Dummy photos for the mockup, picked from a hand-curated, visually-checked list of real Unsplash
    photos per category (see CATEGORIES / SOCIETY_IMAGES) — not a live keyword search, so there's
@@ -15,7 +16,12 @@ export function imgUrl(pool, seed, w, h) {
   return `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&q=70&w=${w || 640}&h=${h || 400}`;
 }
 
+/** The business's own uploaded cover photo, if they have one -- falls back to a
+ *  category-matched placeholder for vendors who haven't uploaded photos yet. */
 export function bizImg(b, w, h) {
+  if (Array.isArray(b.photos) && b.photos.length) {
+    return cloudinaryUrl(b.photos[0], { w: w || 640, h: h || 400 });
+  }
   return imgUrl(catOf(b.cat).images, seedOf(b.id), w, h);
 }
 

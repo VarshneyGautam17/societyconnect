@@ -63,7 +63,7 @@ export default function EditPage() {
       <main className="max-w-7xl mx-auto px-4 md:px-8 w-full grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_380px] gap-6 pt-6 pb-16 items-start flex-1">
         <div className="flex flex-col gap-6">
           <BasicInfoForm v={v} patch={patch} />
-          <PhotoManager v={v} />
+          <PhotoManager v={v} patch={patch} />
           <ItemsEditor items={v.items} onChange={(items) => patch({ items })} />
           <HoursEditor hours={v.hours} onChange={(hours) => patch({ hours })} />
           <ServedContactPanel v={v} patch={patch} />

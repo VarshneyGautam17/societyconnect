@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { catOf } from '@/data/categories';
 import { socOf, socShort } from '@/data/societies';
 import { bizImg, imgUrl, seedOf } from '@/lib/images';
+import { cloudinaryUrl } from '@/lib/cloudinary';
 import { selectBusinessById, selectIsSaved } from '@/store/selectors';
 import { recordEvent } from '@/store/slices/eventsSlice';
 import { toggleSaved } from '@/store/slices/savedSlice';
@@ -39,6 +40,9 @@ export default function BusinessPage() {
   const photoSeed = business ? seedOf(business.id) : 0;
   const photos = useMemo(() => {
     if (!business) return [];
+    if (Array.isArray(business.photos) && business.photos.length) {
+      return business.photos.map((publicId, i) => ({ blob: BLOBS[i % BLOBS.length], src: cloudinaryUrl(publicId, { w: 320, h: 320 }) }));
+    }
     const c = catOf(business.cat);
     return [0, 1, 2, 3, 4, 5].map((n, i) => ({ blob: BLOBS[i], src: imgUrl(c.images, photoSeed + n * 13, 320, 320) }));
   }, [business, photoSeed]);
