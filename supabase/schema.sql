@@ -46,7 +46,7 @@ create table if not exists businesses (
   -- Vendor-facing description. May contain the app's small safe rich-text
   -- syntax (**bold**, ==highlight==, __underline__) -- parsed client-side
   -- into styled spans, never rendered as raw HTML. See src/lib/richText.js.
-  desc text not null default '' check (char_length(desc) <= 500),
+  "desc" text not null default '' check (char_length("desc") <= 500),
   phone text not null default '',
   whatsapp text not null default '',
   hide_phone boolean not null default true,
@@ -93,7 +93,12 @@ create trigger businesses_set_updated_at
 create or replace function protect_business_review_fields()
 returns trigger as $$
 begin
-  if is_admin() then
+  -- is_admin() covers app traffic authenticated as an admin; current_user =
+  -- 'postgres' covers a direct database connection (the SQL Editor, a
+  -- migration/seed script, psql) -- PostgREST/the public API never connects
+  -- as that role, only as 'anon' or 'authenticated', so this isn't reachable
+  -- by a vendor through the app no matter what they send.
+  if is_admin() or current_user = 'postgres' then
     return new;
   end if;
 

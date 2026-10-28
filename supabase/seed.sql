@@ -4,7 +4,7 @@
 -- in the same SQL Editor. Safe to skip or delete later -- these rows have
 -- owner_id = null, so they never collide with a real vendor's listing.
 
-insert into businesses (name, cat, society, served, area, desc, phone, whatsapp, hide_phone, verified, status, offer, offer_valid, items, hours)
+insert into businesses (name, cat, society, served, area, "desc", phone, whatsapp, hide_phone, verified, status, offer, offer_valid, items, hours)
 values
   ('Annapurna Home Kitchen', 'food', 'prestige', array['prestige'], 'Tower B', 'Homestyle North Indian thalis and tiffin plans, cooked fresh every morning.', '+91 98XXX XXX10', '+91 98XXX XXX10', true, true, 'approved', '10% off your first weekly tiffin plan', 'Valid till 30 Nov 2026',
     '[["Veg thali","Dal, sabzi, roti, rice, salad","₹160"],["Rajma chawal combo","With raita and papad","₹130"],["Paneer butter masala combo","With 3 rotis and rice","₹190"],["Weekly lunch tiffin plan","Monday to Saturday, per week","₹900"]]',
