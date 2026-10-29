@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useSelector } from 'react-redux';
 import Icon from '@/components/ui/Icon';
+import { useHideOnScroll } from '@/lib/useHideOnScroll';
 
 function TabItem({ href, active, iconName, label }) {
   return (
@@ -23,11 +24,12 @@ function TabItem({ href, active, iconName, label }) {
 export default function MobileTabBar({ active }) {
   const vendor = useSelector((state) => state.vendor.current);
   const vendorLink = vendor && vendor.published ? '/dashboard' : '/onboarding';
+  const hidden = useHideOnScroll();
 
   return (
     <nav
       aria-label="Quick navigation"
-      className="md:hidden fixed left-0 right-0 bottom-0 z-40 glass-strong flex justify-around px-1 py-1 shadow-[0_-8px_24px_-16px_rgba(15,23,42,0.3)]"
+      className={`md:hidden fixed left-0 right-0 bottom-0 z-40 glass-strong flex justify-around px-1 py-1 shadow-[0_-8px_24px_-16px_rgba(15,23,42,0.3)] transition-transform duration-300 ${hidden ? 'translate-y-full' : 'translate-y-0'}`}
     >
       <TabItem href="/" active={active === 'home'} iconName="home" label="Home" />
       <TabItem href="/directory" active={active === 'directory'} iconName="search" label="Explore" />

@@ -62,6 +62,11 @@
   --radius-xl: 3rem;
   --radius-full: 9999px;
 
+  /* Tailwind's default scale jumps straight from no breakpoint (phones) to sm: at 640px, so
+     anything from ~451px up to 639px -- larger phones, small tablets in portrait -- was stuck
+     with the cramped phone layout even though it has real room to spare. This fills that gap. */
+  --breakpoint-xs: 28.1875rem; /* 451px */
+
   --font-label-sm: "Manrope", "Segoe UI", sans-serif;
   --font-body-md: "Manrope", "Segoe UI", sans-serif;
   --font-body-lg: "Manrope", "Segoe UI", sans-serif;
@@ -119,6 +124,16 @@ body {
 }
 .animate-gentle-drift { animation: gentleDrift 6s ease-in-out infinite; }
 
+/* Slow ambient movement for the big blurred colour blobs behind the hero/search sections --
+   a "living" gradient background rather than a static one, kept slow and low-amplitude so it
+   reads as atmosphere, not a distraction. */
+@keyframes blobDrift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(18px, -14px) scale(1.08); }
+}
+.animate-blob-drift { animation: blobDrift 16s ease-in-out infinite; }
+.animate-blob-drift-slow { animation: blobDrift 22s ease-in-out infinite reverse; }
+
 @keyframes fadeUp {
   from { transform: translateY(10px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
@@ -131,6 +146,24 @@ body {
 }
 .animate-gate-slide-up { animation: gateSlideUp 0.3s ease-out; }
 
+/* Dropdown panel (<Select>) pop-in -- scales up from its trigger-side corner (set via
+   origin-top-left/origin-top-right on the element) rather than just fading, so it reads as
+   emerging from the button that opened it. */
+@keyframes selectPop {
+  from { transform: scale(0.96) translateY(-4px); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
+}
+.animate-select-pop { animation: selectPop 0.15s cubic-bezier(0.16, 1, 0.3, 1); }
+
+/* Quick scale "pop" for the checkmark that appears on a <Select> row once it's selected --
+   remounted with a fresh `key` on every change so it replays each time, same trick as heartPop. */
+@keyframes checkPop {
+  0% { transform: scale(0.4); opacity: 0; }
+  60% { transform: scale(1.25); opacity: 1; }
+  100% { transform: scale(1); }
+}
+.animate-check-pop { animation: checkPop 0.25s cubic-bezier(0.34, 1.4, 0.64, 1); }
+
 /* Save/heart "pop" on toggle -- replayed each time by remounting the icon with a fresh `key`
    (see ContactActions.jsx), same trick used for the gate's slide-up. Restrained rather than
    bouncy, so it reads as a considered confirmation rather than a cartoon flourish. */
@@ -140,14 +173,6 @@ body {
   100% { transform: scale(1); }
 }
 .animate-heart-pop { animation: heartPop 0.35s cubic-bezier(0.34, 1.2, 0.64, 1); }
-
-/* Soft expanding ring behind the WhatsApp action, the same "there's a live way to reach them"
-   affordance Zomato/Swiggy use on their primary contact CTA. */
-@keyframes whatsappPulse {
-  0% { transform: scale(1); opacity: 0.55; }
-  100% { transform: scale(1.9); opacity: 0; }
-}
-.animate-whatsapp-pulse { animation: whatsappPulse 1.8s ease-out infinite; }
 
 /* Faint brand-tinted glow for the handful of primary calls-to-action, used sparingly so it
    still reads as an accent rather than a generic drop shadow. */
@@ -186,4 +211,14 @@ body {
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Belt-and-braces reduced-motion support: Reveal/CountUp already skip themselves via
+   matchMedia, but this also catches the plain CSS keyframe animations above for anyone whose
+   browser doesn't run that JS check in time (e.g. the very first paint). */
+@media (prefers-reduced-motion: reduce) {
+  .animate-gentle-drift, .animate-blob-drift, .animate-blob-drift-slow,
+  .animate-heart-pop, .animate-fade-up, .animate-gate-slide-up, .animate-select-pop, .animate-check-pop {
+    animation: none !important;
+  }
+}
 

@@ -1,15 +1,24 @@
 import Link from 'next/link';
 import { BUSINESSES } from '@/data/businesses';
 import { catOf } from '@/data/categories';
-import MonoTile from '@/components/ui/MonoTile';
+import { bizImg, blobOf } from '@/lib/images';
 import Icon from '@/components/ui/Icon';
+import Reveal from '@/components/ui/Reveal';
+
+/* Rank 1-3 get a medal-coloured badge so the ranking reads at a glance -- same treatment as the
+   directory page's top-picks panel, kept visually consistent between the two. */
+const RANK_BADGE = {
+  1: 'bg-secondary text-on-secondary',
+  2: 'bg-outline text-white',
+  3: 'bg-on-secondary-fixed-variant text-white'
+};
 
 export default function PicksRow() {
   const picks = BUSINESSES.slice(0, 10);
   return (
     <section className="py-8 md:py-16 bg-surface-container-low/60 border-y border-outline-variant/30">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 mb-4 md:mb-8">
+        <Reveal className="flex flex-col md:flex-row md:items-end justify-between gap-3 mb-4 md:mb-8">
           <div>
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary-fixed text-primary font-label-sm text-label-sm font-bold mb-2">
               <Icon name="local_fire_department" className="text-xs" filled />
@@ -22,21 +31,37 @@ export default function PicksRow() {
             <span>See all 20 picks</span>
             <Icon name="arrow_forward" className="text-sm" />
           </Link>
-        </div>
+        </Reveal>
         <div className="flex gap-3 md:gap-5 overflow-x-auto pb-2 no-scrollbar">
           {picks.map((b, i) => {
             const c = catOf(b.cat);
+            const rank = i + 1;
             return (
-              <Link key={b.id} href={`/business/${b.id}`} className="flex-none w-36 md:w-48 bg-surface-container-lowest rounded-2xl md:rounded-3xl p-3 md:p-4 border border-outline-variant/40 shadow-sm hover:shadow-md transition-all flex flex-col gap-2.5 md:gap-4">
-                <div className="flex items-center justify-between">
-                  <MonoTile business={b} className="w-9 h-9 md:w-12 md:h-12 text-base md:text-xl rounded-xl md:rounded-2xl" />
-                  <span className="font-label-sm text-label-sm font-bold text-on-secondary-fixed-variant bg-secondary-fixed px-2 py-0.5 md:px-2.5 md:py-1 rounded-full">No. {i + 1}</span>
-                </div>
-                <div>
-                  <strong className="block font-headline-sm text-label-lg md:text-headline-sm text-on-surface leading-tight">{b.name}</strong>
-                  <small className="text-on-surface-variant font-body-sm text-body-sm">{c.name}</small>
-                </div>
-              </Link>
+              <Reveal key={b.id} delay={(i % 6) * 60} distance={14} className="flex-none">
+                <Link
+                  href={`/business/${b.id}`}
+                  className={`group block w-36 md:w-48 rounded-2xl md:rounded-3xl p-2.5 md:p-3.5 border shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col gap-2.5 md:gap-3 ${
+                    rank <= 3 ? 'bg-gradient-to-br from-secondary-fixed/40 to-surface-container-lowest border-secondary-fixed' : 'bg-surface-container-lowest border-outline-variant/40'
+                  }`}
+                >
+                  <div className="relative">
+                    <div className={`w-full aspect-square ${blobOf(b.id)} overflow-hidden bg-surface-container-high border-2 border-surface-container-lowest`}>
+                      <img className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src={bizImg(b)} alt="" loading="lazy" />
+                    </div>
+                    <span
+                      className={`absolute -top-2 -left-2 w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center font-label-sm text-label-sm font-bold shadow-sm ${
+                        RANK_BADGE[rank] || 'bg-surface-container-lowest border border-outline-variant text-on-surface-variant'
+                      }`}
+                    >
+                      {rank}
+                    </span>
+                  </div>
+                  <div className="min-w-0">
+                    <strong className="block font-headline-sm text-label-lg md:text-headline-sm text-on-surface leading-tight line-clamp-2">{b.name}</strong>
+                    <small className="block truncate text-on-surface-variant font-body-sm text-body-sm">{c.name}</small>
+                  </div>
+                </Link>
+              </Reveal>
             );
           })}
         </div>

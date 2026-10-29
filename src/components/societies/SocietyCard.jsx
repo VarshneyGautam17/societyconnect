@@ -29,10 +29,10 @@ export default function SocietyCard({ society }) {
             <span>{count} businesses listed</span>
           </span>
         </div>
-        <h3 className="font-headline-sm text-label-lg sm:text-headline-sm text-on-surface group-hover:text-primary transition-colors mb-1">{society.name}</h3>
-        <div className="flex items-center gap-1.5 text-on-surface-variant font-label-sm sm:font-label-md text-label-sm sm:text-label-md mb-2.5 sm:mb-4">
-          <Icon name="pin" className="text-sm text-outline" />
-          <span>{society.place}</span>
+        <h3 className="font-headline-sm text-label-lg sm:text-headline-sm text-on-surface group-hover:text-primary transition-colors mb-1 line-clamp-2 min-w-0">{society.name}</h3>
+        <div className="flex items-center gap-1.5 text-on-surface-variant font-label-sm sm:font-label-md text-label-sm sm:text-label-md mb-2.5 sm:mb-4 min-w-0">
+          <Icon name="pin" className="text-sm text-outline flex-none" />
+          <span className="truncate">{society.place}</span>
         </div>
       </div>
       <button

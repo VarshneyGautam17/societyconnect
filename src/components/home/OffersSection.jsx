@@ -3,6 +3,7 @@ import { BUSINESSES, OFFERS_VALID } from '@/data/businesses';
 import { catOf } from '@/data/categories';
 import { socShort } from '@/data/societies';
 import Icon from '@/components/ui/Icon';
+import Reveal from '@/components/ui/Reveal';
 
 const THEMES = [
   { from: 'from-secondary-fixed', to: 'to-surface-container-lowest', border: 'border-secondary-fixed', blob: 'bg-secondary-fixed/50', chip: 'bg-secondary-fixed text-on-secondary-fixed-variant', text: 'text-on-secondary-fixed-variant', sub: 'text-on-secondary-fixed-variant/75', divider: 'border-secondary-fixed/70', btn: 'bg-secondary hover:bg-on-secondary-fixed-variant' },
@@ -15,7 +16,7 @@ export default function OffersSection() {
   return (
     <section className="py-8 md:py-16 bg-surface">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
-        <div className="mb-4 md:mb-8 text-center max-w-2xl mx-auto">
+        <Reveal className="mb-4 md:mb-8 text-center max-w-2xl mx-auto">
           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary-fixed text-secondary font-label-sm text-label-sm font-bold mb-2">
             <Icon name="local_activity" className="text-xs" />
             <span>Exclusive Resident Perks</span>
@@ -24,13 +25,13 @@ export default function OffersSection() {
           <p className="font-body-sm md:font-body-md text-body-sm md:text-body-md text-on-surface-variant mt-1.5 md:mt-2">
             Special neighbor-to-neighbor discounts, introductory sessions, and bundled packages active right now.
           </p>
-        </div>
+        </Reveal>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
           {offers.map((b, i) => {
             const t = THEMES[i % 3];
             const c = catOf(b.cat);
             return (
-              <div key={b.id} className={`bg-gradient-to-br ${t.from} ${t.to} border ${t.border} rounded-2xl md:rounded-3xl p-4 md:p-6 relative overflow-hidden flex flex-col justify-between shadow-sm`}>
+              <Reveal key={b.id} delay={i * 90} className={`bg-gradient-to-br ${t.from} ${t.to} border ${t.border} rounded-2xl md:rounded-3xl p-4 md:p-6 relative overflow-hidden flex flex-col justify-between shadow-sm`}>
                 <div className={`absolute -right-6 -bottom-6 w-28 h-28 ${t.blob} rounded-full blur-xl pointer-events-none`} />
                 <div>
                   <div className="flex items-center justify-between mb-3 md:mb-4">
@@ -40,14 +41,14 @@ export default function OffersSection() {
                       <span>{OFFERS_VALID[i % 3]}</span>
                     </span>
                   </div>
-                  <h3 className={`font-headline-md text-label-lg md:text-headline-md ${t.text} font-bold mb-1.5 md:mb-2`}>{b.offer}</h3>
-                  <p className={`font-body-sm text-body-sm ${t.sub} mb-4 md:mb-6`}>{b.name} &middot; {b.area}, {socShort(b.society)}</p>
+                  <h3 className={`font-headline-md text-label-lg md:text-headline-md ${t.text} font-bold mb-1.5 md:mb-2 line-clamp-2`}>{b.offer}</h3>
+                  <p className={`font-body-sm text-body-sm ${t.sub} mb-4 md:mb-6 truncate`}>{b.name} &middot; {b.area}, {socShort(b.society)}</p>
                 </div>
                 <div className={`pt-3 md:pt-4 border-t ${t.divider} flex items-center justify-between gap-3`}>
-                  <span className="font-label-sm md:font-label-md text-label-sm md:text-label-md text-on-surface-variant">{c.name}</span>
-                  <Link href={`/business/${b.id}`} className={`px-3.5 py-1.5 md:px-4 md:py-2 rounded-full ${t.btn} text-white font-label-sm md:font-label-md text-label-sm md:text-label-md font-bold transition-colors`}>View deal</Link>
+                  <span className="font-label-sm md:font-label-md text-label-sm md:text-label-md text-on-surface-variant truncate flex-1 min-w-0">{c.name}</span>
+                  <Link href={`/business/${b.id}`} className={`flex-none px-3.5 py-1.5 md:px-4 md:py-2 rounded-full ${t.btn} text-white font-label-sm md:font-label-md text-label-sm md:text-label-md font-bold transition-colors`}>View deal</Link>
                 </div>
-              </div>
+              </Reveal>
             );
           })}
         </div>

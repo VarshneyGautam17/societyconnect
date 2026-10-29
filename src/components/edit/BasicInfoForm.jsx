@@ -1,6 +1,9 @@
 import { CATEGORIES } from '@/data/categories';
 import { inputCls } from '@/components/ui/Field';
 import RichTextEditor from '@/components/ui/RichTextEditor';
+import Select from '@/components/ui/Select';
+
+const CATEGORY_OPTIONS = CATEGORIES.map((c) => ({ value: c.id, label: c.name, icon: c.micon }));
 
 export default function BasicInfoForm({ v, patch }) {
   return (
@@ -15,12 +18,16 @@ export default function BasicInfoForm({ v, patch }) {
           Description
           <RichTextEditor value={v.desc} onChange={(desc) => patch({ desc })} rows={3} maxLength={500} className="mt-2" />
         </div>
-        <label className="block font-label-md text-label-md font-semibold text-on-surface">
+        <div className="block font-label-md text-label-md font-semibold text-on-surface">
           Category
-          <select value={v.cat} onChange={(e) => patch({ cat: e.target.value })} className={`${inputCls} border-outline-variant`}>
-            {CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-        </label>
+          <Select
+            ariaLabel="Category"
+            value={v.cat}
+            onChange={(cat) => patch({ cat })}
+            options={CATEGORY_OPTIONS}
+            triggerClassName="w-full mt-2 min-h-[48px] rounded-2xl border border-outline-variant px-4 font-body-md text-body-md focus:border-primary focus:outline-none flex items-center justify-between gap-2 text-left"
+          />
+        </div>
         <label className="block font-label-md text-label-md font-semibold text-on-surface">
           Tower, block or area
           <input value={v.area} onChange={(e) => patch({ area: e.target.value })} maxLength={120} className={`${inputCls} border-outline-variant`} />

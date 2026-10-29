@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useSelector } from 'react-redux';
 import { socShort, socOf } from '@/data/societies';
 import Icon from '@/components/ui/Icon';
+import { useHideOnScroll } from '@/lib/useHideOnScroll';
 
 const NAV = [
   { href: '/', label: 'Home', key: 'home' },
@@ -14,6 +15,8 @@ const NAV = [
 
 export default function Header({ active, minimal = false }) {
   const [open, setOpen] = useState(false);
+  const scrolledDown = useHideOnScroll();
+  const hidden = scrolledDown && !open;
   const vendor = useSelector((state) => state.vendor.current);
   const societyId = useSelector((state) => state.society.selectedId);
   const vendorLink = vendor && vendor.published ? '/dashboard' : '/onboarding';
@@ -31,11 +34,11 @@ export default function Header({ active, minimal = false }) {
 
   if (minimal) {
     return (
-      <header className="glass sticky top-0 z-50 shadow-sm">
+      <header className={`glass sticky top-0 z-50 shadow-sm transition-transform duration-300 ${hidden ? '-translate-y-full' : 'translate-y-0'}`}>
         <div className="flex flex-wrap justify-between items-center max-w-7xl mx-auto px-4 md:px-8 min-h-14 md:min-h-16 w-full gap-y-1 gap-x-4">
           {brand}
           <nav className="flex items-center gap-3 sm:gap-5">
-            <Link href="/" className="hidden sm:inline font-label-lg text-label-lg font-medium text-on-surface-variant hover:text-primary transition-colors">Need help?</Link>
+            <Link href="/" className="hidden xs:inline font-label-lg text-label-lg font-medium text-on-surface-variant hover:text-primary transition-colors">Need help?</Link>
             <Link href="/" className="font-label-md md:font-label-lg text-label-md md:text-label-lg font-semibold text-primary">Back to home</Link>
           </nav>
         </div>
@@ -44,7 +47,7 @@ export default function Header({ active, minimal = false }) {
   }
 
   return (
-    <header className="glass sticky top-0 z-50 shadow-sm">
+    <header className={`glass sticky top-0 z-50 shadow-sm transition-transform duration-300 ${hidden ? '-translate-y-full' : 'translate-y-0'}`}>
       <div className="relative flex flex-wrap justify-between items-center max-w-7xl mx-auto px-4 md:px-8 min-h-14 md:min-h-16 w-full gap-y-2 gap-x-4">
         <div className="flex items-center gap-4 min-w-0">
           {brand}
@@ -97,7 +100,7 @@ export default function Header({ active, minimal = false }) {
         <div className="flex items-center gap-2 sm:gap-3 flex-none">
           <Link
             href={vendorLink}
-            className="hidden sm:inline-flex items-center gap-2 bg-primary text-on-primary font-label-lg text-label-lg font-semibold px-4 xl:px-5 py-2.5 rounded-full shadow-sm hover:shadow-md hover:bg-primary-container active:scale-[0.98] transition-all whitespace-nowrap"
+            className="hidden xs:inline-flex items-center gap-2 bg-primary text-on-primary font-label-lg text-label-lg font-semibold px-4 xl:px-5 py-2.5 rounded-full shadow-sm hover:shadow-md hover:bg-primary-container active:scale-[0.98] transition-all whitespace-nowrap"
           >
             <span className="xl:hidden">{vendor && vendor.published ? 'Dashboard' : 'List'}</span>
             <span className="hidden xl:inline">{vendorLabel}</span>

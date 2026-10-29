@@ -4,6 +4,7 @@ import { socShort } from '@/data/societies';
 import Chip from '@/components/ui/Chip';
 import BizCard from '@/components/ui/BizCard';
 import Icon from '@/components/ui/Icon';
+import Reveal from '@/components/ui/Reveal';
 
 const ALL_CHIP = { id: 'all', short: 'All', micon: 'grid_view' };
 
@@ -14,7 +15,7 @@ export default function BusinessesSection({ societyId, list, cat, onCatChange, s
   return (
     <section className="py-8 md:py-16 bg-surface" id="businesses">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 mb-4 md:mb-8">
+        <Reveal className="flex flex-col md:flex-row md:items-end justify-between gap-3 mb-4 md:mb-8">
           <div>
             <div className="flex items-center gap-2 text-primary font-label-sm md:font-label-md text-label-sm md:text-label-md font-bold uppercase tracking-wider mb-1.5 md:mb-2">
               <Icon name="near_me" className="text-sm" />
@@ -29,16 +30,20 @@ export default function BusinessesSection({ societyId, list, cat, onCatChange, s
             <span>View all businesses</span>
             <Icon name="arrow_forward" className="text-sm group-hover:translate-x-1 transition-transform" />
           </Link>
-        </div>
+        </Reveal>
 
-        <div className="flex items-center gap-2 overflow-x-auto pb-3 pt-1 no-scrollbar mb-4 md:mb-8">
+        <Reveal delay={80} className="flex items-center gap-2 overflow-x-auto pb-3 pt-1 no-scrollbar mb-4 md:mb-8">
           {chips.map((c) => (
             <Chip key={c.id} label={c.short} iconName={c.micon} pressed={cat === c.id} onClick={() => onCatChange(c.id)} />
           ))}
-        </div>
+        </Reveal>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-8">
-          {visible.map((b) => <BizCard key={b.id} business={b} />)}
+          {visible.map((b, i) => (
+            <Reveal key={b.id} delay={(i % 6) * 60}>
+              <BizCard business={b} />
+            </Reveal>
+          ))}
         </div>
 
         {list.length === 0 && (

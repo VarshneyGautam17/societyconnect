@@ -1,13 +1,14 @@
 import Link from 'next/link';
 import Icon from '@/components/ui/Icon';
+import Reveal from '@/components/ui/Reveal';
 
 export default function VendorCTA() {
   return (
     <section className="py-8 md:py-16 bg-surface">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
-        <div className="relative bg-inverse-surface text-inverse-on-surface rounded-2xl md:rounded-[3rem] p-5 md:p-16 overflow-hidden shadow-2xl">
-          <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary-container/30 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-secondary-container/20 rounded-full blur-3xl pointer-events-none" />
+        <Reveal as="div" className="relative bg-inverse-surface text-inverse-on-surface rounded-2xl md:rounded-[3rem] p-5 md:p-16 overflow-hidden shadow-2xl">
+          <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary-container/30 rounded-full blur-3xl pointer-events-none animate-blob-drift" />
+          <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-secondary-container/20 rounded-full blur-3xl pointer-events-none animate-blob-drift-slow" />
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-5 md:gap-8 items-center">
             <div className="lg:col-span-8">
               <div className="inline-flex items-center gap-2 px-3 py-1 md:px-4 md:py-1.5 rounded-full glass-dark text-inverse-on-surface font-label-sm md:font-label-md text-label-sm md:text-label-md font-semibold mb-3 md:mb-6">
@@ -31,7 +32,7 @@ export default function VendorCTA() {
                 </a>
               </div>
             </div>
-            <div className="hidden sm:flex lg:col-span-4 justify-center lg:justify-end">
+            <div className="hidden xs:flex lg:col-span-4 justify-center lg:justify-end">
               <div className="w-40 h-40 md:w-56 md:h-56 rounded-full bg-gradient-to-tr from-primary to-primary-container p-1 shadow-2xl flex items-center justify-center animate-gentle-drift">
                 <div className="w-full h-full rounded-full glass-dark flex flex-col items-center justify-center text-center p-4 md:p-6">
                   <Icon name="volunteer_activism" className="text-tertiary-fixed-dim text-2xl md:text-3xl mb-1.5 md:mb-2" filled />
@@ -41,7 +42,7 @@ export default function VendorCTA() {
               </div>
             </div>
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );

@@ -12,8 +12,17 @@ import TopPicksPanel from '@/components/directory/TopPicksPanel';
 import Chip from '@/components/ui/Chip';
 import BizCard from '@/components/ui/BizCard';
 import Icon from '@/components/ui/Icon';
+import Select from '@/components/ui/Select';
+import Reveal from '@/components/ui/Reveal';
+import { useReveal } from '@/lib/useReveal';
 
 const PAGE = 12;
+const SOCIETY_OPTIONS = [{ value: 'all', label: 'All societies' }, ...SOCIETIES.map((s) => ({ value: s.id, label: s.name }))];
+const SORT_OPTIONS = [
+  { value: 'newest', label: 'Newest', icon: 'schedule' },
+  { value: 'az', label: 'A to Z', icon: 'sort_by_alpha' },
+  { value: 'views', label: 'Most viewed', icon: 'trending_up' }
+];
 
 function DirectoryContent() {
   const params = useSearchParams();
@@ -52,16 +61,20 @@ function DirectoryContent() {
     setCat('all'); setQ(''); setSoc('all'); setVerifiedOnly(false); setOffersOnly(false); setSavedOnly(false); setShown(PAGE);
   }
 
+  const headingReveal = useReveal(0);
+  const formReveal = useReveal(120);
+
   return (
     <SiteShell active="directory">
       <section className="relative overflow-hidden border-b border-outline-variant/30 py-6 md:py-12">
-        <div className="absolute -top-20 -left-20 w-72 h-72 bg-primary-fixed/60 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-1/2 -right-16 w-64 h-64 bg-secondary-fixed/50 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-20 -left-20 w-72 h-72 bg-primary-fixed/60 rounded-full blur-3xl pointer-events-none animate-blob-drift" />
+        <div className="absolute top-1/2 -right-16 w-64 h-64 bg-secondary-fixed/50 rounded-full blur-3xl pointer-events-none animate-blob-drift-slow" />
         <div className="relative max-w-7xl mx-auto px-4 md:px-8">
-          <h1 className="font-headline-lg text-headline-md md:text-headline-lg text-on-surface tracking-tight mb-3 md:mb-6">
+          <h1 {...headingReveal} className="font-headline-lg text-headline-md md:text-headline-lg text-on-surface tracking-tight mb-3 md:mb-6">
             {savedOnly ? 'Saved businesses' : 'All local businesses'}
           </h1>
           <form
+            {...formReveal}
             onSubmit={(e) => { e.preventDefault(); setShown(PAGE); }}
             role="search"
             className="w-full max-w-3xl glass-strong p-2 rounded-2xl md:rounded-full shadow-lg flex flex-col md:flex-row items-center gap-2 focus-within:ring-2 focus-within:ring-primary/30"
@@ -77,18 +90,16 @@ function DirectoryContent() {
                 className="w-full bg-transparent font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none border-none py-1"
               />
             </label>
-            <label className="flex items-center gap-2 px-3 py-2 w-full md:w-auto">
+            <div className="flex items-center gap-2 px-3 py-2 w-full md:w-auto">
               <Icon name="location_city" className="text-primary" />
-              <select
+              <Select
+                ariaLabel="Society"
                 value={soc}
-                onChange={(e) => { setSoc(e.target.value); setShown(PAGE); }}
-                aria-label="Society"
-                className="bg-transparent font-label-md text-label-md font-semibold text-on-surface focus:outline-none border-none pr-6 cursor-pointer py-1"
-              >
-                <option value="all">All societies</option>
-                {SOCIETIES.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-              </select>
-            </label>
+                onChange={(v) => { setSoc(v); setShown(PAGE); }}
+                options={SOCIETY_OPTIONS}
+                triggerClassName="inline-flex items-center gap-1.5 bg-transparent font-label-md text-label-md font-semibold text-on-surface focus:outline-none py-1 max-w-[150px] sm:max-w-[220px]"
+              />
+            </div>
             <button type="submit" className="w-full md:w-auto px-5 py-2.5 md:px-7 md:py-3 rounded-full bg-primary text-on-primary font-label-md md:font-label-lg text-label-md md:text-label-lg font-semibold hover:bg-primary-container shadow-md transition-all active:scale-95">Search</button>
           </form>
         </div>
@@ -98,12 +109,12 @@ function DirectoryContent() {
 
       <section className="py-4 md:py-6 bg-surface" id="categories">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
-          <div className="flex items-center gap-2 overflow-x-auto pb-3 pt-1 no-scrollbar">
+          <Reveal className="flex items-center gap-2 overflow-x-auto pb-3 pt-1 no-scrollbar">
             {chips.map((c) => (
               <Chip key={c.id} label={c.name} pressed={cat === c.id} onClick={() => { setCat(c.id); setShown(PAGE); }} />
             ))}
-          </div>
-          <div className="flex flex-wrap items-center gap-2 mb-3 md:mb-5">
+          </Reveal>
+          <Reveal delay={60} className="flex flex-wrap items-center gap-2 mb-3 md:mb-5">
             <label className="inline-flex items-center gap-1.5 min-h-[36px] md:min-h-[44px] px-3 md:px-4 rounded-full md:rounded-2xl border border-outline-variant/40 bg-surface-container-lowest font-label-sm md:font-label-md text-label-sm md:text-label-md font-medium text-on-surface">
               <input type="checkbox" checked={verifiedOnly} onChange={(e) => { setVerifiedOnly(e.target.checked); setShown(PAGE); }} className="w-3.5 h-3.5 md:w-4 md:h-4 accent-primary" />
               <span>Verified only</span>
@@ -117,27 +128,34 @@ function DirectoryContent() {
               <span>Saved only</span>
             </label>
             <span className="flex-1" />
-            <label className="flex items-center gap-1.5 font-label-sm md:font-label-md text-label-sm md:text-label-md text-on-surface-variant">
-              Sort
-              <select value={sort} onChange={(e) => setSort(e.target.value)} className="min-h-[36px] md:min-h-[44px] rounded-full md:rounded-2xl border border-outline-variant/40 bg-surface-container-lowest px-2.5 md:px-3 font-label-sm md:font-label-md text-label-sm md:text-label-md text-on-surface">
-                <option value="newest">Newest</option>
-                <option value="az">A to Z</option>
-                <option value="views">Most viewed</option>
-              </select>
-            </label>
-          </div>
+            <div className="flex items-center gap-1.5 font-label-sm md:font-label-md text-label-sm md:text-label-md text-on-surface-variant">
+              <span>Sort</span>
+              <Select
+                ariaLabel="Sort"
+                value={sort}
+                onChange={setSort}
+                options={SORT_OPTIONS}
+                triggerClassName="inline-flex items-center gap-1.5 min-h-[36px] md:min-h-[44px] rounded-full md:rounded-2xl border border-outline-variant/40 bg-surface-container-lowest px-2.5 md:px-3 font-label-sm md:font-label-md text-label-sm md:text-label-md text-on-surface"
+                align="right"
+              />
+            </div>
+          </Reveal>
           <p className="font-body-sm text-body-sm text-on-surface-variant mb-3 md:mb-6">Showing {Math.min(shown, list.length)} of {list.length} businesses</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-8">
-            {visible.map((b) => <BizCard key={b.id} business={b} />)}
+            {visible.map((b, i) => (
+              <Reveal key={b.id} delay={(i % 6) * 60}>
+                <BizCard business={b} />
+              </Reveal>
+            ))}
           </div>
           {list.length === 0 && (
-            <div className="bg-surface-container-lowest border border-dashed border-outline-variant rounded-2xl md:rounded-3xl p-6 md:p-10 text-center">
+            <Reveal as="div" className="bg-surface-container-lowest border border-dashed border-outline-variant rounded-2xl md:rounded-3xl p-6 md:p-10 text-center">
               <h3 className="font-headline-sm text-headline-sm text-on-surface mb-2">No businesses match</h3>
               <p className="text-on-surface-variant font-body-md text-body-md mb-5">Try another category or clear a filter.</p>
               <button type="button" onClick={clearFilters} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-outline-variant hover:border-primary text-on-surface font-label-md md:font-label-lg text-label-md md:text-label-lg font-bold transition-colors">
                 Clear filters
               </button>
-            </div>
+            </Reveal>
           )}
           {list.length > shown && (
             <div className="mt-6 md:mt-12 flex justify-center">
@@ -156,7 +174,7 @@ function DirectoryContent() {
 
       <section className="py-8 md:py-16 bg-surface">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
-          <div className="bg-primary rounded-2xl md:rounded-3xl p-5 md:p-10 flex flex-wrap items-center justify-between gap-4 md:gap-6">
+          <Reveal className="bg-primary rounded-2xl md:rounded-3xl p-5 md:p-10 flex flex-wrap items-center justify-between gap-4 md:gap-6">
             <div>
               <h2 className="font-headline-md text-label-lg md:text-headline-md text-white mb-1">Run a business in your society?</h2>
               <p className="font-body-sm md:font-body-md text-body-sm md:text-body-md text-primary-fixed max-w-lg">List it free for the first 1 to 2 months and get found when neighbors search.</p>
@@ -164,7 +182,7 @@ function DirectoryContent() {
             <Link href="/onboarding" className="inline-flex items-center gap-2 px-5 py-2.5 md:px-7 md:py-3.5 rounded-full bg-white text-primary font-label-md md:font-label-lg text-label-md md:text-label-lg font-bold hover:bg-surface-container-high shadow-lg active:scale-95 transition-all">
               List your business
             </Link>
-          </div>
+          </Reveal>
         </div>
       </section>
     </SiteShell>

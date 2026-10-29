@@ -35,19 +35,20 @@ export default function BizCard({ business }) {
   }
 
   return (
-    <article className="group relative bg-surface-container-lowest rounded-2xl sm:rounded-3xl p-3 sm:p-5 border border-outline-variant/30 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col sm:justify-between">
+    <article className="group relative bg-surface-container-lowest rounded-2xl sm:rounded-3xl p-3 sm:p-5 border border-outline-variant/30 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col xs:justify-between">
       {/* Stretched-link pattern, phones only: covers the whole card so the entire row is
           tappable (Zomato/Swiggy-style tap-through-to-detail) -- the save button opts back in
-          with pointer-events-auto. Scoped to sm:hidden rather than relying on it everywhere:
-          at sm:+ the card already has its own explicit "View business" button/link, and
-          reasoning about paint order between this and unpositioned sibling content isn't worth
-          the risk without a real browser to check it in. */}
-      <Link href={`/business/${business.id}`} className="sm:hidden absolute inset-0 z-0 rounded-2xl" aria-label={`View ${business.name}`} />
+          with pointer-events-auto. Scoped to xs:hidden (not everywhere): at xs:+ the card
+          already has its own explicit "View business" button/link, and reasoning about paint
+          order between this and unpositioned sibling content isn't worth the risk without a
+          real browser to check it in. */}
+      <Link href={`/business/${business.id}`} className="xs:hidden absolute inset-0 z-0 rounded-2xl" aria-label={`View ${business.name}`} />
 
-      {/* Compact horizontal row -- phones only. pointer-events-none on the whole row (not just
-          the text column) so tapping the thumbnail image also falls through to the overlay
-          link below -- only the save button opts back in with pointer-events-auto. */}
-      <div className="relative z-10 flex sm:hidden gap-3 pointer-events-none">
+      {/* Compact horizontal row -- narrow phones only (below the xs breakpoint). pointer-events-none
+          on the whole row (not just the text column) so tapping the thumbnail image also falls
+          through to the overlay link below -- only the save button opts back in with
+          pointer-events-auto. */}
+      <div className="relative z-10 flex xs:hidden gap-3 pointer-events-none">
         <div className={`relative w-24 h-24 flex-none overflow-hidden rounded-xl ${blobOf(business.id)} bg-surface-container border-2 border-surface-container-lowest`}>
           <img className="w-full h-full object-cover" src={bizImg(business)} alt="" loading="lazy" />
           {business.verified && (
@@ -77,8 +78,8 @@ export default function BizCard({ business }) {
         </div>
       </div>
 
-      {/* Full card -- tablet/desktop. */}
-      <div className="hidden sm:block">
+      {/* Full card -- from xs: up (anything wider than a narrow phone). */}
+      <div className="hidden xs:block">
         <div className="relative w-full aspect-[4/3] mb-5 overflow-hidden">
           <div className={`w-full h-full ${blobOf(business.id)} overflow-hidden bg-surface-container border-2 border-surface-container-lowest`}>
             <img className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src={bizImg(business)} alt="" loading="lazy" />
@@ -96,22 +97,22 @@ export default function BizCard({ business }) {
           )}
         </div>
         <div className="flex items-start justify-between gap-2 mb-1.5">
-          <h3 className="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors">{business.name}</h3>
+          <h3 className="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors line-clamp-2 min-w-0">{business.name}</h3>
         </div>
-        <div className="flex items-center gap-1.5 text-on-surface-variant font-label-md text-label-md mb-3">
-          <Icon name="pin" className="text-sm text-outline" />
-          <span>{business.area}, {socShort(business.society)}</span>
+        <div className="flex items-center gap-1.5 text-on-surface-variant font-label-md text-label-md mb-3 min-w-0">
+          <Icon name="pin" className="text-sm text-outline flex-none" />
+          <span className="truncate">{business.area}, {socShort(business.society)}</span>
         </div>
         <p className="font-body-sm text-body-sm text-on-surface-variant/90 line-clamp-2 mb-4"><RichText text={business.desc} /></p>
       </div>
-      <div className="hidden sm:flex relative z-10 pt-4 border-t border-outline-variant/30 items-center gap-2">
+      <div className="hidden xs:flex relative z-10 pt-4 border-t border-outline-variant/30 items-center gap-2">
         <Link
           href={`/business/${business.id}`}
           className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-primary text-on-primary font-label-md text-label-md font-semibold hover:bg-primary-container shadow-sm transition-colors"
         >
           View business
         </Link>
-        <WhatsAppButton onClick={() => onContact('whatsapp')} ariaLabel={`WhatsApp ${business.name}`} pulse className="h-11 w-11" />
+        <WhatsAppButton onClick={() => onContact('whatsapp')} ariaLabel={`WhatsApp ${business.name}`} className="h-11 w-11" />
         <CallButton onClick={() => onContact('call')} ariaLabel={`Call ${business.name}`} className="h-11 w-11" />
       </div>
     </article>
