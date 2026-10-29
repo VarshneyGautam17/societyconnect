@@ -36,13 +36,15 @@ export default function SocietiesPage() {
 
   return (
     <SiteShell active="societies">
-      <section className="bg-surface-container-low/40 border-b border-outline-variant/30 py-6 md:py-12">
-        <div className="max-w-7xl mx-auto px-4 md:px-8">
+      <section className="relative overflow-hidden border-b border-outline-variant/30 py-6 md:py-12">
+        <div className="absolute -top-20 -right-20 w-72 h-72 bg-tertiary-fixed/60 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 -left-16 w-64 h-64 bg-primary-fixed/50 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative max-w-7xl mx-auto px-4 md:px-8">
           <h1 className="font-headline-lg text-headline-md md:text-headline-lg text-on-surface tracking-tight mb-2 md:mb-3">Find your society</h1>
           <p className="hidden sm:block font-body-sm md:font-body-lg text-body-sm md:text-body-lg text-on-surface-variant max-w-2xl mb-4 md:mb-8">
             Pick a society to see the businesses run by your neighbors. You can change it any time from the top of any page.
           </p>
-          <form onSubmit={onSubmit} role="search" className="w-full max-w-3xl bg-surface-container-lowest p-2 rounded-2xl md:rounded-full border border-outline-variant/50 shadow-lg flex flex-col md:flex-row items-center gap-2 mb-3 md:mb-4 focus-within:ring-2 focus-within:ring-primary/30">
+          <form onSubmit={onSubmit} role="search" className="w-full max-w-3xl glass-strong p-2 rounded-2xl md:rounded-full shadow-lg flex flex-col md:flex-row items-center gap-2 mb-3 md:mb-4 focus-within:ring-2 focus-within:ring-primary/30">
             <label className="flex items-center gap-2 px-3 py-2 flex-1 w-full">
               <Icon name="search" className="text-outline" />
               <input

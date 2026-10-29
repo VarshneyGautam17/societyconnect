@@ -24,7 +24,7 @@ export default function SocietyCard({ society }) {
           <div className={`w-full h-full ${blobOf(society.id)} overflow-hidden bg-surface-container border-2 border-surface-container-lowest`}>
             <img className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src={socImg(society, 640, 440)} alt="" loading="lazy" />
           </div>
-          <span className="absolute bottom-2 left-2 bg-surface-container-lowest/95 backdrop-blur-sm px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-label-sm font-label-sm font-bold text-tertiary flex items-center gap-1 shadow-sm">
+          <span className="absolute bottom-2 left-2 glass px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-label-sm font-label-sm font-bold text-tertiary flex items-center gap-1 shadow-sm">
             <Icon name="circleCheck" className="text-xs" filled />
             <span>{count} businesses listed</span>
           </span>

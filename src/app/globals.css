@@ -153,5 +153,37 @@ body {
    still reads as an accent rather than a generic drop shadow. */
 .shadow-glow-primary { box-shadow: 0 8px 30px -8px color-mix(in srgb, var(--color-primary) 45%, transparent); }
 
+/* Frosted-glass surfaces: real backdrop blur + a saturation lift + a faint inner highlight along
+   the top edge -- that highlight is the detail that sells "glass" instead of just "translucent".
+   Reserved for things that actually sit over imagery, gradient colour or scrolling content
+   underneath (sticky header/nav, floating hero cards, the search bar over hero blobs, modals,
+   image badges) -- a flat panel over plain ivory page background wouldn't show any effect. */
+.glass {
+  background: color-mix(in srgb, var(--color-surface-container-lowest) 70%, transparent);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid color-mix(in srgb, white 60%, var(--color-outline-variant) 40%);
+  box-shadow: inset 0 1px 0 0 color-mix(in srgb, white 70%, transparent);
+}
+/* Same glass, higher opacity -- for surfaces that need to stay easily readable (bottom nav bars,
+   dialogs, the search field you type into) while still reading as frosted rather than flat. */
+.glass-strong {
+  background: color-mix(in srgb, var(--color-surface-container-lowest) 90%, transparent);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid color-mix(in srgb, white 65%, var(--color-outline-variant) 35%);
+  box-shadow: inset 0 1px 0 0 color-mix(in srgb, white 75%, transparent);
+}
+/* Glass tuned for dark/inverse surfaces (e.g. the vendor CTA panel) -- a white tint instead of
+   the (light) surface token, since that token would barely show against a dark background. */
+.glass-dark {
+  background: color-mix(in srgb, white 12%, transparent);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border: 1px solid color-mix(in srgb, white 22%, transparent);
+  box-shadow: inset 0 1px 0 0 color-mix(in srgb, white 30%, transparent);
+}
+
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+

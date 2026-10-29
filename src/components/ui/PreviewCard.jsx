@@ -15,12 +15,12 @@ export default function PreviewCard({ business }) {
           <div className={`w-full h-full ${blobOf(business.id || 'preview')} overflow-hidden bg-surface-container border-2 border-surface-container-lowest`}>
             <img className="w-full h-full object-cover" src={bizImg(business)} alt="" loading="lazy" />
           </div>
-          <span className="absolute top-2 left-2 bg-surface-container-lowest/90 backdrop-blur-sm px-2.5 py-1 rounded-full text-label-sm font-label-sm font-bold flex items-center gap-1 shadow-sm" style={{ color: c.fg }}>
+          <span className="absolute top-2 left-2 glass px-2.5 py-1 rounded-full text-label-sm font-label-sm font-bold flex items-center gap-1 shadow-sm" style={{ color: c.fg }}>
             <Icon name={c.micon} className="text-xs" />
             <span>{c.short}</span>
           </span>
           {business.verified && (
-            <span className="absolute bottom-2 right-2 bg-surface-container-lowest/95 backdrop-blur-sm px-2.5 py-1 rounded-full text-label-sm font-label-sm font-bold text-tertiary flex items-center gap-1 shadow-sm">
+            <span className="absolute bottom-2 right-2 glass px-2.5 py-1 rounded-full text-label-sm font-label-sm font-bold text-tertiary flex items-center gap-1 shadow-sm">
               <Icon name="shield" className="text-xs" filled /><span>Verified</span>
             </span>
           )}

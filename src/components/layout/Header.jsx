@@ -31,7 +31,7 @@ export default function Header({ active, minimal = false }) {
 
   if (minimal) {
     return (
-      <header className="bg-surface-container-lowest/90 backdrop-blur-md sticky top-0 z-50 shadow-sm border-b border-outline-variant/30">
+      <header className="glass sticky top-0 z-50 shadow-sm">
         <div className="flex flex-wrap justify-between items-center max-w-7xl mx-auto px-4 md:px-8 min-h-14 md:min-h-16 w-full gap-y-1 gap-x-4">
           {brand}
           <nav className="flex items-center gap-3 sm:gap-5">
@@ -44,7 +44,7 @@ export default function Header({ active, minimal = false }) {
   }
 
   return (
-    <header className="bg-surface-container-lowest/90 backdrop-blur-md sticky top-0 z-50 shadow-sm border-b border-outline-variant/30">
+    <header className="glass sticky top-0 z-50 shadow-sm">
       <div className="relative flex flex-wrap justify-between items-center max-w-7xl mx-auto px-4 md:px-8 min-h-14 md:min-h-16 w-full gap-y-2 gap-x-4">
         <div className="flex items-center gap-4 min-w-0">
           {brand}

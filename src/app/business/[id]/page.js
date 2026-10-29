@@ -258,7 +258,7 @@ export default function BusinessPage() {
       {/* Mobile-only: the WhatsApp/Call buttons up in the hero scroll out of reach on a long
           page, so they're repeated here, pinned just above the tab bar -- the same "always
           reachable" contact bar pattern Zomato/Swiggy use on their listing pages. */}
-      <div className="md:hidden fixed inset-x-0 bottom-14 z-30 bg-surface-container-lowest/95 backdrop-blur-md border-t border-outline-variant/40 px-3 py-2 flex items-center gap-2 shadow-[0_-8px_24px_-16px_rgba(15,23,42,0.3)]">
+      <div className="md:hidden fixed inset-x-0 bottom-14 z-30 glass-strong px-3 py-2 flex items-center gap-2 shadow-[0_-8px_24px_-16px_rgba(15,23,42,0.3)]">
         <SaveButton saved={saved} onClick={onSave} className="w-11 h-11 flex-none border border-outline-variant/50" />
         <WhatsAppButton onClick={() => onContact('whatsapp')} label="WhatsApp" pulse className="flex-1 h-11 font-label-md text-label-md" />
         <CallButton onClick={() => onContact('call')} label="Call" className="flex-1 h-11 font-label-md text-label-md" />

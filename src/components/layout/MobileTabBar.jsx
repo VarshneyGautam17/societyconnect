@@ -27,7 +27,7 @@ export default function MobileTabBar({ active }) {
   return (
     <nav
       aria-label="Quick navigation"
-      className="md:hidden fixed left-0 right-0 bottom-0 z-40 bg-surface-container-lowest/95 backdrop-blur-md border-t border-outline-variant/40 flex justify-around px-1 py-1 shadow-[0_-8px_24px_-16px_rgba(15,23,42,0.3)]"
+      className="md:hidden fixed left-0 right-0 bottom-0 z-40 glass-strong flex justify-around px-1 py-1 shadow-[0_-8px_24px_-16px_rgba(15,23,42,0.3)]"
     >
       <TabItem href="/" active={active === 'home'} iconName="home" label="Home" />
       <TabItem href="/directory" active={active === 'directory'} iconName="search" label="Explore" />

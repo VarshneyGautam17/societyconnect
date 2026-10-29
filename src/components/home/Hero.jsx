@@ -6,10 +6,15 @@ import Icon from '@/components/ui/Icon';
 export default function Hero({ societyId, onSocietyChange, query, onQueryChange, onSubmit, locateMsg, onLocate, heroSociety, heroCount }) {
   return (
     <section className="relative overflow-hidden pt-5 pb-6 md:pt-14 md:pb-24 border-b border-outline-variant/30">
+      {/* Soft colour behind the fold so the glass search bar and badge below have something to
+          actually blur -- without this a glass surface over flat ivory page background looks the
+          same as a plain translucent one. */}
+      <div className="absolute -top-24 -left-24 w-80 h-80 bg-primary-fixed/60 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/3 -left-10 w-64 h-64 bg-secondary-fixed/50 rounded-full blur-3xl pointer-events-none" />
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           <div className="lg:col-span-7 flex flex-col items-start z-10">
-            <div className="hidden sm:inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-surface-container border border-outline-variant/50 shadow-sm mb-6">
+            <div className="hidden sm:inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass shadow-sm mb-6">
               <span className="w-2 h-2 rounded-full bg-tertiary animate-pulse" />
               <span className="font-label-md text-label-md font-semibold text-on-surface">Showing businesses in your society</span>
               <Icon name="verified_user" className="text-primary text-base" filled />
@@ -23,7 +28,7 @@ export default function Hero({ societyId, onSocietyChange, query, onQueryChange,
             <form
               onSubmit={onSubmit}
               role="search"
-              className="w-full max-w-2xl bg-surface-container-lowest p-2 rounded-2xl md:rounded-full border border-outline-variant/50 shadow-lg flex flex-col md:flex-row items-center gap-2 mb-4 focus-within:ring-2 focus-within:ring-primary/30"
+              className="relative z-10 w-full max-w-2xl glass-strong p-2 rounded-2xl md:rounded-full shadow-lg flex flex-col md:flex-row items-center gap-2 mb-4 focus-within:ring-2 focus-within:ring-primary/30"
             >
               <label className="flex items-center gap-2 px-3 py-2 w-full md:w-auto border-b md:border-b-0 md:border-r border-outline-variant/40">
                 <Icon name="location_city" className="text-primary" />
@@ -95,7 +100,7 @@ export default function Hero({ societyId, onSocietyChange, query, onQueryChange,
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-on-surface/30 via-transparent to-transparent" />
               </div>
-              <div className="absolute -top-4 -left-3 bg-surface-container-lowest/90 backdrop-blur-md border border-surface-container-lowest/80 shadow-xl rounded-2xl p-3 flex items-center gap-3 animate-gentle-drift">
+              <div className="absolute -top-4 -left-3 glass shadow-xl rounded-2xl p-3 flex items-center gap-3 animate-gentle-drift">
                 <div className="w-10 h-10 rounded-xl bg-tertiary-fixed flex items-center justify-center text-tertiary"><Icon name="domain" className="text-lg" filled /></div>
                 <div>
                   <p className="font-label-sm text-label-sm text-on-surface-variant font-medium">Selected society</p>
@@ -106,7 +111,7 @@ export default function Hero({ societyId, onSocietyChange, query, onQueryChange,
                   </div>
                 </div>
               </div>
-              <div className="absolute -bottom-6 -right-3 bg-surface-container-lowest/90 backdrop-blur-md border border-surface-container-lowest/80 shadow-xl rounded-full px-4 py-2.5 flex items-center gap-3">
+              <div className="absolute -bottom-6 -right-3 glass shadow-xl rounded-full px-4 py-2.5 flex items-center gap-3">
                 <div className="flex -space-x-2 overflow-hidden">
                   <span className="inline-block h-7 w-7 rounded-full ring-2 ring-surface-container-lowest bg-primary-fixed flex items-center justify-center text-primary font-bold text-xs">RK</span>
                   <span className="inline-block h-7 w-7 rounded-full ring-2 ring-surface-container-lowest bg-secondary-fixed flex items-center justify-center text-secondary font-bold text-xs">AM</span>

@@ -51,7 +51,7 @@ export default function BizCard({ business }) {
         <div className={`relative w-24 h-24 flex-none overflow-hidden rounded-xl ${blobOf(business.id)} bg-surface-container border-2 border-surface-container-lowest`}>
           <img className="w-full h-full object-cover" src={bizImg(business)} alt="" loading="lazy" />
           {business.verified && (
-            <span className="absolute bottom-1 left-1 bg-surface-container-lowest/95 rounded-full p-1 shadow-sm text-tertiary">
+            <span className="absolute bottom-1 left-1 glass rounded-full p-1 shadow-sm text-tertiary">
               <Icon name="shield" className="text-xs" filled />
             </span>
           )}
@@ -83,13 +83,13 @@ export default function BizCard({ business }) {
           <div className={`w-full h-full ${blobOf(business.id)} overflow-hidden bg-surface-container border-2 border-surface-container-lowest`}>
             <img className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src={bizImg(business)} alt="" loading="lazy" />
           </div>
-          <SaveButton saved={saved} onClick={onSave} ariaLabel={`Save ${business.name}`} className="absolute z-10 top-2 right-2 h-9 w-9 bg-surface-container-lowest/90 backdrop-blur-sm shadow-sm" />
-          <span className="absolute top-2 left-2 bg-surface-container-lowest/90 backdrop-blur-sm px-2.5 py-1 rounded-full text-label-sm font-label-sm font-bold flex items-center gap-1 shadow-sm" style={{ color: c.fg }}>
+          <SaveButton saved={saved} onClick={onSave} ariaLabel={`Save ${business.name}`} className="absolute z-10 top-2 right-2 h-9 w-9 glass shadow-sm" />
+          <span className="absolute top-2 left-2 glass px-2.5 py-1 rounded-full text-label-sm font-label-sm font-bold flex items-center gap-1 shadow-sm" style={{ color: c.fg }}>
             <Icon name={c.micon} className="text-xs" />
             <span>{c.short}</span>
           </span>
           {business.verified && (
-            <span className="absolute bottom-2 right-2 bg-surface-container-lowest/95 backdrop-blur-sm px-2.5 py-1 rounded-full text-label-sm font-label-sm font-bold text-tertiary flex items-center gap-1 shadow-sm">
+            <span className="absolute bottom-2 right-2 glass px-2.5 py-1 rounded-full text-label-sm font-label-sm font-bold text-tertiary flex items-center gap-1 shadow-sm">
               <Icon name="shield" className="text-xs" filled />
               <span>Verified</span>
             </span>

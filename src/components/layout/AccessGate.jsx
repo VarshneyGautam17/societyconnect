@@ -33,7 +33,7 @@ export default function AccessGate() {
       aria-modal="true"
       aria-labelledby="access-gate-title"
     >
-      <div className="w-full sm:max-w-sm bg-surface-container-lowest rounded-t-3xl sm:rounded-3xl p-5 sm:p-7 shadow-2xl animate-gate-slide-up">
+      <div className="w-full sm:max-w-sm glass-strong rounded-t-3xl sm:rounded-3xl p-5 sm:p-7 shadow-2xl animate-gate-slide-up">
         <div className="w-10 h-10 rounded-xl bg-primary-fixed text-primary flex items-center justify-center mb-3">
           <Icon name="storefront" className="text-xl" filled />
         </div>
