@@ -21,6 +21,7 @@ export function dbRowToFormVendor(row) {
     offerValid: row.offer_valid,
     items: row.items || [],
     hours: row.hours || [],
+    banner: row.banner || null,
     photos: row.photos || []
   };
 }
@@ -41,6 +42,7 @@ export function formVendorToDbPatch(v) {
     offer_valid: v.offerValid,
     items: v.items,
     hours: v.hours,
+    banner: v.banner || null,
     photos: v.photos
   };
 }

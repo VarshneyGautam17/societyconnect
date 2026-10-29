@@ -20,7 +20,7 @@ import StepOfferings from '@/components/onboarding/steps/StepOfferings';
 import Icon from '@/components/ui/Icon';
 
 const STEP_COUNT = 5;
-const EMPTY_DRAFT = { phone: '', otpSent: false, otp: '', name: '', cat: '', desc: '', whatsapp: '', call: '', same: true, served: [], area: '', items: [['', '', '']], offer: '' };
+const EMPTY_DRAFT = { phone: '', otpSent: false, otp: '', name: '', cat: '', desc: '', whatsapp: '', call: '', same: true, served: [], area: '', items: [['', '', '']], offer: '', banner: null, photos: [] };
 
 function buildVendor(draft) {
   const vendor = defaultVendor();
@@ -36,6 +36,8 @@ function buildVendor(draft) {
   vendor.offer = draft.offer;
   vendor.offerValid = draft.offer ? 'Mention SocietySpot when you order.' : '';
   vendor.items = draft.items.filter((r) => r[0].trim()).map((r) => [r[0], r[1] || '', r[2] || 'On request']);
+  vendor.banner = draft.banner || null;
+  vendor.photos = draft.photos || [];
   vendor.published = true;
   return vendor;
 }

@@ -16,9 +16,13 @@ export function imgUrl(pool, seed, w, h) {
   return `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&q=70&w=${w || 640}&h=${h || 400}`;
 }
 
-/** The business's own uploaded cover photo, if they have one -- falls back to a
- *  category-matched placeholder for vendors who haven't uploaded photos yet. */
+/** The business's own uploaded banner, if they have one -- falls back to their first
+ *  gallery photo (for listings uploaded before the banner slot existed), then to a
+ *  category-matched placeholder for vendors who haven't uploaded anything yet. */
 export function bizImg(b, w, h) {
+  if (b.banner) {
+    return cloudinaryUrl(b.banner, { w: w || 640, h: h || 400 });
+  }
   if (Array.isArray(b.photos) && b.photos.length) {
     return cloudinaryUrl(b.photos[0], { w: w || 640, h: h || 400 });
   }

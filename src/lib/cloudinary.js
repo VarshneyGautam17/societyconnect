@@ -3,19 +3,24 @@
    in the Cloudinary dashboard) is what authorizes this, and it's safe to
    ship in client code. */
 
+import { prepareImageForUpload } from '@/lib/imageUpload';
+
 const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
-/** Uploads a single image file to Cloudinary. Resolves to the Cloudinary
- *  public_id, which is what gets stored (not the full URL -- that way the
- *  delivery URL can be rebuilt at any size/quality from cloudinaryUrl()). */
+/** Validates, re-encodes to WebP (see lib/imageUpload.js), and uploads a single
+ *  image file to Cloudinary. Resolves to the Cloudinary public_id, which is what
+ *  gets stored (not the full URL -- that way the delivery URL can be rebuilt at
+ *  any size/quality from cloudinaryUrl()). */
 export async function uploadImage(file) {
   if (!CLOUD_NAME || !UPLOAD_PRESET) {
     throw new Error('Cloudinary is not configured. Set NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME and NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET.');
   }
 
+  const processed = await prepareImageForUpload(file);
+
   const form = new FormData();
-  form.append('file', file);
+  form.append('file', processed);
   form.append('upload_preset', UPLOAD_PRESET);
   form.append('folder', 'societyspot');
 

@@ -40,6 +40,7 @@ export default function StepServe({ draft, patch, errors }) {
             value={draft.area}
             onChange={(e) => patch({ area: e.target.value })}
             placeholder="e.g. Tower B"
+            maxLength={120}
             className={`${inputCls} border-outline-variant`}
           />
         </Field>

@@ -50,7 +50,7 @@ function VendorRow({ business }) {
           <p className="font-body-sm text-body-sm text-on-surface-variant mt-2 max-w-2xl"><RichText text={business.desc} /></p>
         </div>
         <div className="flex items-center gap-2 flex-none">
-          <Link href={`/business/${business.id}`} target="_blank" className="font-label-md text-label-md font-semibold text-primary hover:underline">Preview</Link>
+          <Link href={`/business/${business.id}`} target="_blank" rel="noopener noreferrer" className="font-label-md text-label-md font-semibold text-primary hover:underline">Preview</Link>
           <button type="button" onClick={onApprove} disabled={pending} className="inline-flex items-center px-4 py-2 rounded-full bg-primary text-on-primary font-label-md text-label-md font-semibold hover:bg-primary-container transition-colors disabled:opacity-60">Approve</button>
           <button type="button" onClick={() => setRejecting((r) => !r)} disabled={pending} className="inline-flex items-center px-4 py-2 rounded-full border border-outline-variant text-on-surface font-label-md text-label-md font-semibold hover:border-error hover:text-error transition-colors disabled:opacity-60">Reject</button>
         </div>
@@ -61,6 +61,7 @@ function VendorRow({ business }) {
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             placeholder="Reason (shown to the vendor, optional)"
+            maxLength={500}
             className="flex-1 min-w-[220px] min-h-[40px] rounded-xl border border-outline-variant px-3 font-body-sm text-body-sm focus:border-primary focus:outline-none"
           />
           <button type="button" onClick={onReject} disabled={pending} className="inline-flex items-center px-4 py-2 rounded-full bg-error text-white font-label-md text-label-md font-semibold disabled:opacity-60">Confirm reject</button>

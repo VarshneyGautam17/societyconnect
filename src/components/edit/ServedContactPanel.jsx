@@ -21,11 +21,11 @@ export default function ServedContactPanel({ v, patch }) {
       <div className="flex flex-wrap gap-4">
         <label className="flex-1 min-w-[220px] block font-label-md text-label-md font-semibold text-on-surface">
           WhatsApp
-          <input value={v.whatsapp} onChange={(e) => patch({ whatsapp: e.target.value })} className={`${inputCls} border-outline-variant`} />
+          <input value={v.whatsapp} onChange={(e) => patch({ whatsapp: e.target.value })} maxLength={20} className={`${inputCls} border-outline-variant`} />
         </label>
         <label className="flex-1 min-w-[220px] block font-label-md text-label-md font-semibold text-on-surface">
           Phone
-          <input value={v.phone} onChange={(e) => patch({ phone: e.target.value })} className={`${inputCls} border-outline-variant`} />
+          <input value={v.phone} onChange={(e) => patch({ phone: e.target.value })} maxLength={20} className={`${inputCls} border-outline-variant`} />
         </label>
       </div>
       <label className="flex items-center gap-2.5 font-body-md text-body-md text-on-surface mt-4">

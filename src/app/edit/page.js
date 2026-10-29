@@ -37,6 +37,9 @@ export default function EditPage() {
 
   function onPublish() {
     if (!v.name.trim()) { toast('Please add a business name first.'); return; }
+    if (!v.served?.length) { toast('Choose at least one society you serve.'); return; }
+    if (!v.whatsapp?.trim()) { toast('Add a WhatsApp number.'); return; }
+    if (!v.phone?.trim()) { toast('Add a phone number.'); return; }
     const items = v.items.filter((r) => r[0].trim());
     if (!items.length) { toast('Add at least one product or service.'); return; }
     const published = { ...v, items, society: v.served[0] || v.society, published: true };

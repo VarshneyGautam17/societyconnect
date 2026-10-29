@@ -20,6 +20,7 @@ export default function HoursEditor({ hours, onChange }) {
               value={h.from}
               disabled={!h.open}
               onChange={(e) => update(i, 'from', e.target.value)}
+              maxLength={20}
               className={`w-28 ${inputCls} ${h.open ? '' : 'bg-surface-container-high text-on-surface-variant'}`}
             />
             <span className="font-body-sm text-body-sm text-on-surface-variant">to</span>
@@ -28,6 +29,7 @@ export default function HoursEditor({ hours, onChange }) {
               value={h.to}
               disabled={!h.open}
               onChange={(e) => update(i, 'to', e.target.value)}
+              maxLength={20}
               className={`w-28 ${inputCls} ${h.open ? '' : 'bg-surface-container-high text-on-surface-variant'}`}
             />
           </div>

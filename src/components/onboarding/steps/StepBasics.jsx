@@ -13,6 +13,7 @@ export default function StepBasics({ draft, patch, errors }) {
             value={draft.name}
             onChange={(e) => patch({ name: e.target.value })}
             placeholder="e.g. Annapurna Home Kitchen"
+            maxLength={120}
             className={`${inputCls} ${errors.name ? 'border-error' : 'border-outline-variant'}`}
           />
         </Field>
@@ -40,7 +41,7 @@ export default function StepBasics({ draft, patch, errors }) {
         {errors.cat && <span className="block -mt-3 font-body-sm text-body-sm text-error">{errors.cat}</span>}
 
         <Field label="One-line description">
-          <RichTextEditor value={draft.desc} onChange={(desc) => patch({ desc })} rows={2} placeholder="What do you offer?" className="mt-2" />
+          <RichTextEditor value={draft.desc} onChange={(desc) => patch({ desc })} rows={2} placeholder="What do you offer?" maxLength={500} className="mt-2" />
           <span className="block mt-1.5 font-body-sm text-body-sm text-on-surface-variant">Keep it short. Neighbors read this first.</span>
         </Field>
 

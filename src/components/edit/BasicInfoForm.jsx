@@ -9,11 +9,11 @@ export default function BasicInfoForm({ v, patch }) {
       <div className="flex flex-col gap-4">
         <label className="block font-label-md text-label-md font-semibold text-on-surface">
           Business name
-          <input value={v.name} onChange={(e) => patch({ name: e.target.value })} className={`${inputCls} border-outline-variant`} />
+          <input value={v.name} onChange={(e) => patch({ name: e.target.value })} maxLength={120} className={`${inputCls} border-outline-variant`} />
         </label>
         <div className="block font-label-md text-label-md font-semibold text-on-surface">
           Description
-          <RichTextEditor value={v.desc} onChange={(desc) => patch({ desc })} rows={3} className="mt-2" />
+          <RichTextEditor value={v.desc} onChange={(desc) => patch({ desc })} rows={3} maxLength={500} className="mt-2" />
         </div>
         <label className="block font-label-md text-label-md font-semibold text-on-surface">
           Category
@@ -23,7 +23,7 @@ export default function BasicInfoForm({ v, patch }) {
         </label>
         <label className="block font-label-md text-label-md font-semibold text-on-surface">
           Tower, block or area
-          <input value={v.area} onChange={(e) => patch({ area: e.target.value })} className={`${inputCls} border-outline-variant`} />
+          <input value={v.area} onChange={(e) => patch({ area: e.target.value })} maxLength={120} className={`${inputCls} border-outline-variant`} />
         </label>
       </div>
     </section>

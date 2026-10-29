@@ -50,6 +50,6 @@ export function defaultVendor() {
     items: DEFAULT_ITEMS.food.map((r) => r.slice()),
     phone: '+91 98XXX XXX99', whatsapp: '+91 98XXX XXX99', hidePhone: true,
     hours: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d, i) => ({ day: d, open: i < 6, from: '8:00 am', to: '9:00 pm' })),
-    served: ['prestige'], published: false, photos: []
+    served: ['prestige'], published: false, banner: null, photos: []
   };
 }

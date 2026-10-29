@@ -8,6 +8,7 @@ export default function OffersForm({ v, patch }) {
           <input
             value={v.offer}
             onChange={(e) => patch({ offer: e.target.value })}
+            maxLength={200}
             className="block w-full mt-2 min-h-[48px] rounded-2xl border border-amber-300 bg-white/70 px-4 font-body-md text-body-md focus:border-amber-600 focus:outline-none"
           />
         </label>
@@ -16,6 +17,7 @@ export default function OffersForm({ v, patch }) {
           <input
             value={v.offerValid || ''}
             onChange={(e) => patch({ offerValid: e.target.value })}
+            maxLength={100}
             className="block w-full mt-2 min-h-[48px] rounded-2xl border border-amber-300 bg-white/70 px-4 font-body-md text-body-md focus:border-amber-600 focus:outline-none"
           />
         </label>

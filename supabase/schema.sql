@@ -63,10 +63,17 @@ create table if not exists businesses (
   offer_valid text not null default '',
   items jsonb not null default '[]',
   hours jsonb not null default '[]',
+  -- banner: single Cloudinary public_id for the big hero image on the business page.
+  -- photos: up to 6 Cloudinary public_ids for the gallery panel. Both client-validated
+  -- (image-only, 8MB input cap, recompressed to WebP <=1.5MB) -- see lib/imageUpload.js.
+  banner text,
   photos jsonb not null default '[]',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Idempotent for databases where schema.sql already ran before `banner` existed.
+alter table businesses add column if not exists banner text;
 
 create index if not exists businesses_society_status_idx on businesses (society) where status = 'approved';
 create index if not exists businesses_status_idx on businesses (status);
@@ -170,6 +177,148 @@ create policy "admins can delete any business"
 create unique index if not exists businesses_one_per_owner_idx on businesses (owner_id) where owner_id is not null;
 
 -- ---------------------------------------------------------------------------
+-- Defense-in-depth input constraints. The app's own forms already restrict
+-- category/society to known ids, cap text lengths, and strip non-digits from
+-- phone fields -- but client-side validation is not a security boundary:
+-- anyone with the public anon key (it's meant to be public; see .env.local)
+-- can call the Supabase REST API directly and skip the UI entirely. These
+-- CHECK constraints are what actually stop a malformed, oversized, or
+-- malicious row from being written, no matter how the request is sent.
+-- ---------------------------------------------------------------------------
+
+-- items: jsonb array of [name, note, price] string triples (see
+-- DEFAULT_ITEMS / ItemsEditor.jsx). Capped so a scripted insert can't stuff
+-- thousands of rows or multi-MB strings into a column every visitor's
+-- browser renders on the public business page.
+--
+-- Note on these three validators: Postgres does NOT guarantee left-to-right
+-- short-circuit evaluation of AND/OR (see "Expression Evaluation Rules" in
+-- the Postgres docs, which explicitly warns against e.g. `x <> 0 AND y/x > 1`
+-- as unsafe) -- so a naive `jsonb_typeof(v) = 'array' and jsonb_array_length(v) <= 30`
+-- can still call jsonb_array_length() on a non-array and throw instead of
+-- cleanly failing the constraint. Each type check here is its own `if`
+-- statement (PL/pgSQL statements always run sequentially) or a `case when`
+-- guard, never combined into one boolean expression with the length check.
+create or replace function is_valid_items(v jsonb)
+returns boolean as $$
+begin
+  if jsonb_typeof(v) is distinct from 'array' then
+    return false;
+  end if;
+  if jsonb_array_length(v) > 30 then
+    return false;
+  end if;
+  return not exists (
+    select 1 from jsonb_array_elements(v) as elem
+    where (case when jsonb_typeof(elem) = 'array' then jsonb_array_length(elem) <> 3 else true end)
+       or jsonb_typeof(elem->0) is distinct from 'string'
+       or jsonb_typeof(elem->1) is distinct from 'string'
+       or jsonb_typeof(elem->2) is distinct from 'string'
+       or coalesce(char_length(elem->>0), 0) > 120
+       or coalesce(char_length(elem->>1), 0) > 200
+       or coalesce(char_length(elem->>2), 0) > 40
+  );
+end;
+$$ language plpgsql immutable;
+
+-- hours: jsonb array of up to 7 {day, open, from, to} entries (one per weekday).
+-- `elem->'day'` etc. use text-key access, which safely returns NULL (never
+-- errors) when elem isn't an object -- no jsonb_array_length call on `elem`
+-- here, so no guard needed inside the EXISTS clause.
+create or replace function is_valid_hours(v jsonb)
+returns boolean as $$
+begin
+  if jsonb_typeof(v) is distinct from 'array' then
+    return false;
+  end if;
+  if jsonb_array_length(v) > 7 then
+    return false;
+  end if;
+  return not exists (
+    select 1 from jsonb_array_elements(v) as elem
+    where jsonb_typeof(elem) is distinct from 'object'
+       or jsonb_typeof(elem->'day') is distinct from 'string'
+       or jsonb_typeof(elem->'open') is distinct from 'boolean'
+       or jsonb_typeof(elem->'from') is distinct from 'string'
+       or jsonb_typeof(elem->'to') is distinct from 'string'
+       or coalesce(char_length(elem->>'day'), 0) > 12
+       or coalesce(char_length(elem->>'from'), 0) > 20
+       or coalesce(char_length(elem->>'to'), 0) > 20
+  );
+end;
+$$ language plpgsql immutable;
+
+-- photos: jsonb array of up to 6 Cloudinary public_id strings. `elem #>> '{}'`
+-- (empty path) safely stringifies any jsonb value, so no guard needed.
+create or replace function is_valid_photo_ids(v jsonb)
+returns boolean as $$
+begin
+  if jsonb_typeof(v) is distinct from 'array' then
+    return false;
+  end if;
+  if jsonb_array_length(v) > 6 then
+    return false;
+  end if;
+  return not exists (
+    select 1 from jsonb_array_elements(v) as elem
+    where jsonb_typeof(elem) is distinct from 'string' or char_length(elem #>> '{}') > 300
+  );
+end;
+$$ language plpgsql immutable;
+
+-- cat/society: must be one of the static ids in src/data/categories.js / societies.js.
+alter table businesses drop constraint if exists businesses_cat_check;
+alter table businesses add constraint businesses_cat_check
+  check (cat in ('food', 'edu', 'beauty', 'fashion', 'grocery', 'home', 'fitness', 'other'));
+
+alter table businesses drop constraint if exists businesses_society_check;
+alter table businesses add constraint businesses_society_check
+  check (society in ('prestige', 'purva', 'mantri', 'hiranandani', 'magarpatta', 'dlf', 'lodha', 'brigade'));
+
+-- served: every element must be a known society id; capped at the total number of societies
+-- (8) so it can't be inflated with repeats -- array_length is null for an empty array in
+-- Postgres, hence the "is null or" branch.
+alter table businesses drop constraint if exists businesses_served_check;
+alter table businesses add constraint businesses_served_check
+  check (
+    served <@ array['prestige', 'purva', 'mantri', 'hiranandani', 'magarpatta', 'dlf', 'lodha', 'brigade']::text[]
+    and (array_length(served, 1) is null or array_length(served, 1) <= 8)
+  );
+
+alter table businesses drop constraint if exists businesses_area_check;
+alter table businesses add constraint businesses_area_check check (char_length(area) <= 120);
+
+-- phone/whatsapp: the app stores a formatted, sometimes masked display string
+-- (e.g. "+91 98XXX XXX10"), not a raw digit string -- this allows that shape
+-- while still capping length and rejecting embedded junk/markup.
+alter table businesses drop constraint if exists businesses_phone_check;
+alter table businesses add constraint businesses_phone_check check (phone ~ '^[0-9+Xx() .-]{0,20}$');
+
+alter table businesses drop constraint if exists businesses_whatsapp_check;
+alter table businesses add constraint businesses_whatsapp_check check (whatsapp ~ '^[0-9+Xx() .-]{0,20}$');
+
+alter table businesses drop constraint if exists businesses_offer_check;
+alter table businesses add constraint businesses_offer_check check (char_length(offer) <= 200);
+
+alter table businesses drop constraint if exists businesses_offer_valid_check;
+alter table businesses add constraint businesses_offer_valid_check check (char_length(offer_valid) <= 100);
+
+alter table businesses drop constraint if exists businesses_rejection_reason_check;
+alter table businesses add constraint businesses_rejection_reason_check check (char_length(rejection_reason) <= 500);
+
+alter table businesses drop constraint if exists businesses_banner_check;
+alter table businesses add constraint businesses_banner_check check (banner is null or char_length(banner) <= 300);
+
+alter table businesses drop constraint if exists businesses_items_check;
+alter table businesses add constraint businesses_items_check check (is_valid_items(items));
+
+alter table businesses drop constraint if exists businesses_hours_check;
+alter table businesses add constraint businesses_hours_check check (is_valid_hours(hours));
+
+alter table businesses drop constraint if exists businesses_photos_check;
+alter table businesses add constraint businesses_photos_check check (is_valid_photo_ids(photos));
+
+-- ---------------------------------------------------------------------------
 -- enquiries (resident -> vendor; residents are never authenticated)
 -- ---------------------------------------------------------------------------
 create table if not exists enquiries (
@@ -193,6 +342,24 @@ create policy "anyone can submit an enquiry"
   with check (
     exists (select 1 from businesses b where b.id = business_id and b.status = 'approved')
   );
+
+-- Blunt flood guard: this is not a substitute for a real captcha (there's no
+-- way to distinguish requests by caller here, only by business_id), but it
+-- caps the damage a single scripted loop can do to one business's inbox.
+create or replace function limit_enquiry_rate()
+returns trigger as $$
+begin
+  if (select count(*) from enquiries where business_id = new.business_id and created_at > now() - interval '1 minute') >= 5 then
+    raise exception 'Too many enquiries sent just now. Please try again in a minute.';
+  end if;
+  return new;
+end;
+$$ language plpgsql security definer set search_path = public;
+
+drop trigger if exists enquiries_rate_limit on enquiries;
+create trigger enquiries_rate_limit
+  before insert on enquiries
+  for each row execute function limit_enquiry_rate();
 
 -- Only the business owner can read or update (e.g. mark "Replied") their own enquiries.
 create policy "owners can read their own enquiries"
@@ -228,6 +395,23 @@ create policy "anyone can record an event"
   with check (
     exists (select 1 from businesses b where b.id = business_id and b.status = 'approved')
   );
+
+-- Caps scripted flooding of a single business's analytics; generous enough
+-- (120/minute) not to interfere with genuine traffic on a popular listing.
+create or replace function limit_event_rate()
+returns trigger as $$
+begin
+  if (select count(*) from events where business_id = new.business_id and created_at > now() - interval '1 minute') >= 120 then
+    raise exception 'Too many events recorded just now.';
+  end if;
+  return new;
+end;
+$$ language plpgsql security definer set search_path = public;
+
+drop trigger if exists events_rate_limit on events;
+create trigger events_rate_limit
+  before insert on events
+  for each row execute function limit_event_rate();
 
 create policy "owners can read their own events"
   on events for select

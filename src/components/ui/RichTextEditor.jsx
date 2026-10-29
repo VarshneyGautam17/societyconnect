@@ -14,7 +14,7 @@ const TOOLS = [
 /** A plain <textarea> plus a toolbar that wraps the current selection with
  *  the app's rich-text markers, and a live preview underneath. Select some
  *  text, click a tool, done -- no contentEditable, no HTML output. */
-export default function RichTextEditor({ value, onChange, rows = 3, placeholder, className = '' }) {
+export default function RichTextEditor({ value, onChange, rows = 3, placeholder, maxLength, className = '' }) {
   const textareaRef = useRef(null);
   const pendingSelection = useRef(null);
 
@@ -58,8 +58,10 @@ export default function RichTextEditor({ value, onChange, rows = 3, placeholder,
         onChange={(e) => onChange(e.target.value)}
         rows={rows}
         placeholder={placeholder}
+        maxLength={maxLength}
         className="block w-full min-h-[44px] rounded-2xl border border-outline-variant px-4 py-3 font-body-md text-body-md focus:border-primary focus:outline-none resize-y"
       />
+      {maxLength && <span className="block mt-1 text-right font-body-sm text-body-sm text-on-surface-variant">{(value || '').length}/{maxLength}</span>}
       {value && (
         <div className="mt-2 px-4 py-3 rounded-2xl bg-surface-container-low font-body-sm text-body-sm text-on-surface-variant">
           <span className="block font-label-sm text-label-sm font-bold text-on-surface-variant/70 mb-1 uppercase tracking-wide">Preview</span>
