@@ -4,10 +4,16 @@
    object-src, base-uri, form-action, and explicit img/font/connect allowlists) still blocks
    clickjacking, plugin-based attacks, and exfiltration to unexpected hosts. There is no known
    XSS path in this app (see src/components/ui/RichText.jsx -- output is always React-escaped
-   plain text, never dangerouslySetInnerHTML), so this is defense-in-depth, not a patch for one. */
+   plain text, never dangerouslySetInnerHTML), so this is defense-in-depth, not a patch for one.
+
+   'unsafe-eval' is added to script-src ONLY in development: React/Turbopack's dev-mode HMR and
+   debugging tools (stack-trace reconstruction, etc) use eval() -- React's own error message is
+   explicit that "React will never use eval() in production mode". Without this, `next dev`
+   throws "eval() is not supported in this environment" on every page. */
+const isDev = process.env.NODE_ENV !== 'production';
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com",
   "font-src 'self' https://fonts.gstatic.com",

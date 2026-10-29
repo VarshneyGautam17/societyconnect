@@ -77,7 +77,7 @@ export default function EnquiryForm({ businessId, isRemote = false }) {
         />
       </label>
       {error && <span className="font-body-sm text-body-sm text-error">{error}</span>}
-      <button type="submit" className="inline-flex items-center justify-center px-5 py-3 rounded-full bg-primary text-on-primary font-label-lg text-label-lg font-semibold hover:bg-primary-container transition-colors">
+      <button type="submit" className="inline-flex items-center justify-center min-h-[44px] px-5 rounded-full bg-primary text-on-primary font-label-md md:font-label-lg text-label-md md:text-label-lg font-semibold hover:bg-primary-container transition-colors">
         Send enquiry
       </button>
       <p className="font-body-sm text-body-sm text-on-surface-variant">Demo: in the live product you would be asked to log in so the vendor can reply.</p>

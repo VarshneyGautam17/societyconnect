@@ -5,19 +5,19 @@ import Icon from '@/components/ui/Icon';
 
 export default function Hero({ societyId, onSocietyChange, query, onQueryChange, onSubmit, locateMsg, onLocate, heroSociety, heroCount }) {
   return (
-    <section className="relative overflow-hidden pt-8 pb-16 md:pt-14 md:pb-24 border-b border-outline-variant/30">
+    <section className="relative overflow-hidden pt-5 pb-6 md:pt-14 md:pb-24 border-b border-outline-variant/30">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           <div className="lg:col-span-7 flex flex-col items-start z-10">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-surface-container border border-outline-variant/50 shadow-sm mb-6">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <div className="hidden sm:inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-surface-container border border-outline-variant/50 shadow-sm mb-6">
+              <span className="w-2 h-2 rounded-full bg-tertiary animate-pulse" />
               <span className="font-label-md text-label-md font-semibold text-on-surface">Showing businesses in your society</span>
               <Icon name="verified_user" className="text-primary text-base" filled />
             </div>
-            <h1 className="font-display text-headline-lg-mobile md:text-display text-on-surface tracking-tight leading-tight mb-5">
+            <h1 className="font-display text-headline-lg-mobile md:text-display text-on-surface tracking-tight leading-tight mb-2 md:mb-5">
               Discover trusted <span className="text-primary italic">local businesses</span> in your society
             </h1>
-            <p className="font-body-lg text-body-lg text-on-surface-variant max-w-xl mb-8 leading-relaxed">
+            <p className="hidden sm:block font-body-lg text-body-lg text-on-surface-variant max-w-xl mb-8 leading-relaxed">
               Find the services, products, and offers you need from businesses around your community. Shop local, save time, and support your neighbors.
             </p>
             <form
@@ -49,12 +49,12 @@ export default function Hero({ societyId, onSocietyChange, query, onQueryChange,
                   className="w-full bg-transparent font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none border-none py-1"
                 />
               </label>
-              <button type="submit" className="w-full md:w-auto px-7 py-3 rounded-full bg-primary text-on-primary font-label-lg text-label-lg font-semibold hover:bg-primary-container shadow-md transition-all active:scale-95 flex items-center justify-center gap-2">
+              <button type="submit" className="w-full md:w-auto px-5 py-2.5 md:px-7 md:py-3 rounded-full bg-primary text-on-primary font-label-md md:font-label-lg text-label-md md:text-label-lg font-semibold hover:bg-primary-container shadow-md transition-all active:scale-95 flex items-center justify-center gap-2">
                 <span>Find businesses</span>
                 <Icon name="arrow_forward" className="text-sm" />
               </button>
             </form>
-            <div className="flex flex-wrap items-center gap-3 text-on-surface-variant font-body-sm text-body-sm mb-8">
+            <div className="flex flex-wrap items-center gap-3 text-on-surface-variant font-body-sm text-body-sm mb-1 sm:mb-8">
               <button
                 type="button"
                 onClick={onLocate}
@@ -66,7 +66,7 @@ export default function Hero({ societyId, onSocietyChange, query, onQueryChange,
               <span className="text-outline">&bull;</span>
               <span className="text-on-surface-variant/80">{locateMsg}</span>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 pt-4 border-t border-outline-variant/30 w-full max-w-lg">
+            <div className="hidden sm:grid sm:grid-cols-3 gap-3 sm:gap-4 pt-4 border-t border-outline-variant/30 w-full max-w-lg">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center text-primary"><Icon name="storefront" className="text-base" filled /></div>
                 <span className="font-label-md text-label-md font-semibold text-on-surface">Local businesses</span>
@@ -82,7 +82,7 @@ export default function Hero({ societyId, onSocietyChange, query, onQueryChange,
             </div>
           </div>
 
-          <div className="lg:col-span-5 relative flex items-center justify-center min-h-[380px]">
+          <div className="hidden lg:flex lg:col-span-5 relative items-center justify-center min-h-[380px]">
             <div className="absolute -top-10 -right-10 w-72 h-72 bg-primary-fixed/50 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute -bottom-10 -left-10 w-72 h-72 bg-secondary-fixed/40 rounded-full blur-3xl pointer-events-none" />
             <div className="relative w-full max-w-md aspect-[4/4.5] blob-shape-1 p-2 bg-gradient-to-tr from-surface-container via-surface-container-lowest to-primary-fixed/40 shadow-2xl transition-all duration-700 hover:scale-[1.01]">
@@ -101,7 +101,7 @@ export default function Hero({ societyId, onSocietyChange, query, onQueryChange,
                   <p className="font-label-sm text-label-sm text-on-surface-variant font-medium">Selected society</p>
                   <p className="font-label-md text-label-md font-bold text-on-surface">{heroSociety}</p>
                   <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-tertiary" />
                     <span className="font-label-sm text-label-sm text-tertiary font-semibold">{heroCount} listed</span>
                   </div>
                 </div>

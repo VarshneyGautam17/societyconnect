@@ -4,23 +4,23 @@ import Icon from '@/components/ui/Icon';
 export default function Footer() {
   return (
     <footer className="bg-surface-container border-t border-outline-variant/40 mt-auto">
-      <div className="w-full py-12 px-6 md:px-8 max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-8">
+      <div className="w-full py-6 md:py-12 px-4 md:px-8 max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-5 md:gap-8">
         <div className="max-w-sm">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary">
+          <div className="flex items-center gap-2 mb-2.5 md:mb-3">
+            <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-primary flex items-center justify-center text-on-primary">
               <Icon name="pin" className="text-sm" filled />
             </div>
-            <span className="font-headline-sm text-headline-sm font-bold text-on-surface">SocietySpot</span>
+            <span className="font-headline-sm text-label-lg md:text-headline-sm font-bold text-on-surface">SocietySpot</span>
           </div>
-          <p className="font-body-sm text-body-sm text-on-surface-variant mb-4">
+          <p className="font-body-sm text-body-sm text-on-surface-variant mb-3 md:mb-4">
             Built for trusted residential gated communities across India. A hyperlocal marketplace connecting neighbors.
           </p>
           <div className="flex items-center gap-2 text-on-surface-variant font-label-sm text-label-sm font-semibold">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            <span className="w-2 h-2 rounded-full bg-tertiary" />
             <span>Verified Society Protocol Active</span>
           </div>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-5 md:gap-8">
           <div>
             <h4 className="font-label-lg text-label-lg font-bold text-on-surface mb-3">Directory</h4>
             <ul className="space-y-2 font-body-sm text-body-sm">

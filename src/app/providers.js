@@ -8,6 +8,7 @@ import { hydrateVendor } from '@/store/slices/vendorSlice';
 import { hydrateSaved } from '@/store/slices/savedSlice';
 import { hydrateEvents } from '@/store/slices/eventsSlice';
 import { hydrateEnquiries } from '@/store/slices/enquiriesSlice';
+import { hydrateAccess } from '@/store/slices/accessSlice';
 import { storageGet, storageSet } from '@/lib/storage';
 import { ToastProvider } from '@/components/ui/Toast';
 
@@ -24,6 +25,7 @@ export default function Providers({ children }) {
     store.dispatch(hydrateSaved(storageGet('saved', [])));
     store.dispatch(hydrateEvents(storageGet('events', [])));
     store.dispatch(hydrateEnquiries(storageGet('enquiries', [])));
+    store.dispatch(hydrateAccess(storageGet('access', { phone: null, unlocked: false })));
 
     /* Then keep localStorage in sync with every future change. */
     const unsubscribe = store.subscribe(() => {
@@ -34,6 +36,7 @@ export default function Providers({ children }) {
       storageSet('saved', state.saved.ids);
       storageSet('events', state.events.list);
       storageSet('enquiries', state.enquiries.list);
+      storageSet('access', state.access);
     });
     return unsubscribe;
     // eslint-disable-next-line react-hooks/exhaustive-deps

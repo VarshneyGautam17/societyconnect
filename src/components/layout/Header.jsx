@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useSelector } from 'react-redux';
 import { socShort, socOf } from '@/data/societies';
-import { useToast } from '@/components/ui/Toast';
 import Icon from '@/components/ui/Icon';
 
 const NAV = [
@@ -15,35 +14,29 @@ const NAV = [
 
 export default function Header({ active, minimal = false }) {
   const [open, setOpen] = useState(false);
-  const toast = useToast();
   const vendor = useSelector((state) => state.vendor.current);
   const societyId = useSelector((state) => state.society.selectedId);
   const vendorLink = vendor && vendor.published ? '/dashboard' : '/onboarding';
   const vendorLabel = vendor && vendor.published ? 'My dashboard' : 'List your business';
   const society = socOf(societyId);
 
-  function onLoginClick(e) {
-    e.preventDefault();
-    toast('Demo: login is not connected yet. Browsing never needs it.');
-  }
-
   const brand = (
-    <Link href="/" className="flex items-center gap-2 group flex-none">
-      <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary shadow-sm group-hover:scale-105 transition-transform flex-none">
-        <Icon name="pin" className="text-xl" filled />
+    <Link href="/" className="flex items-center gap-1.5 md:gap-2 group flex-none">
+      <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-primary flex items-center justify-center text-on-primary shadow-sm group-hover:scale-105 transition-transform flex-none">
+        <Icon name="pin" className="text-base md:text-xl" filled />
       </div>
-      <span className="font-headline-sm text-headline-sm text-primary tracking-tight whitespace-nowrap">SocietySpot</span>
+      <span className="font-headline-sm text-label-lg md:text-headline-sm text-primary tracking-tight whitespace-nowrap">SocietySpot</span>
     </Link>
   );
 
   if (minimal) {
     return (
       <header className="bg-surface-container-lowest/90 backdrop-blur-md sticky top-0 z-50 shadow-sm border-b border-outline-variant/30">
-        <div className="flex flex-wrap justify-between items-center max-w-7xl mx-auto px-4 md:px-8 min-h-16 w-full gap-y-1 gap-x-4">
+        <div className="flex flex-wrap justify-between items-center max-w-7xl mx-auto px-4 md:px-8 min-h-14 md:min-h-16 w-full gap-y-1 gap-x-4">
           {brand}
           <nav className="flex items-center gap-3 sm:gap-5">
             <Link href="/" className="hidden sm:inline font-label-lg text-label-lg font-medium text-on-surface-variant hover:text-primary transition-colors">Need help?</Link>
-            <Link href="/" className="font-label-lg text-label-lg font-semibold text-primary">Back to home</Link>
+            <Link href="/" className="font-label-md md:font-label-lg text-label-md md:text-label-lg font-semibold text-primary">Back to home</Link>
           </nav>
         </div>
       </header>
@@ -52,7 +45,7 @@ export default function Header({ active, minimal = false }) {
 
   return (
     <header className="bg-surface-container-lowest/90 backdrop-blur-md sticky top-0 z-50 shadow-sm border-b border-outline-variant/30">
-      <div className="relative flex flex-wrap justify-between items-center max-w-7xl mx-auto px-4 md:px-8 min-h-16 w-full gap-y-2 gap-x-4">
+      <div className="relative flex flex-wrap justify-between items-center max-w-7xl mx-auto px-4 md:px-8 min-h-14 md:min-h-16 w-full gap-y-2 gap-x-4">
         <div className="flex items-center gap-4 min-w-0">
           {brand}
           <Link
@@ -102,7 +95,6 @@ export default function Header({ active, minimal = false }) {
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3 flex-none">
-          <a href="#" onClick={onLoginClick} className="hidden sm:inline-block font-label-lg text-label-lg font-semibold text-on-surface hover:text-primary transition-colors px-2 sm:px-3 py-1.5 whitespace-nowrap">Login</a>
           <Link
             href={vendorLink}
             className="hidden sm:inline-flex items-center gap-2 bg-primary text-on-primary font-label-lg text-label-lg font-semibold px-4 xl:px-5 py-2.5 rounded-full shadow-sm hover:shadow-md hover:bg-primary-container active:scale-[0.98] transition-all whitespace-nowrap"
@@ -115,7 +107,7 @@ export default function Header({ active, minimal = false }) {
             onClick={() => setOpen((o) => !o)}
             aria-label="Open menu"
             aria-expanded={open}
-            className="xl:hidden flex items-center justify-center h-10 px-4 rounded-full border border-outline-variant/40 text-on-surface flex-none"
+            className="xl:hidden flex items-center justify-center h-9 px-3 md:h-10 md:px-4 rounded-full border border-outline-variant/40 text-on-surface flex-none"
           >
             <Icon name={open ? 'close' : 'menu'} className="text-xl" />
           </button>

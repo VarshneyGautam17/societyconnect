@@ -13,18 +13,18 @@ export default function TopPicksPanel() {
   const list = BUSINESSES.filter((b) => pickCat === 'all' || b.cat === pickCat);
 
   return (
-    <section className="py-12 md:py-16 bg-surface" id="picks">
+    <section className="py-6 md:py-12 bg-surface" id="picks">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
-        <div className="bg-surface-container-lowest rounded-3xl md:rounded-[2.5rem] p-6 md:p-10 border border-outline-variant/30 shadow-sm">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-2">
+        <div className="bg-surface-container-lowest rounded-2xl md:rounded-[2.5rem] p-4 md:p-10 border border-outline-variant/30 shadow-sm">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 mb-2">
             <div>
-              <span className="inline-flex items-center px-3 py-1 rounded-full bg-amber-100 text-amber-800 font-label-sm text-label-sm font-bold">October 2026</span>
-              <h2 className="font-headline-lg text-headline-lg text-on-surface tracking-tight mt-3">Top picks of the month</h2>
-              <p className="font-body-md text-body-md text-on-surface-variant mt-1 max-w-xl">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed-variant font-label-sm text-label-sm font-bold">October 2026</span>
+              <h2 className="font-headline-lg text-headline-md md:text-headline-lg text-on-surface tracking-tight mt-2">Top picks of the month</h2>
+              <p className="font-body-sm md:font-body-md text-body-sm md:text-body-md text-on-surface-variant mt-1 max-w-xl">
                 20 businesses ranked by profile views, saves and contact attempts over the last 30 days. Ratings are never invented.
               </p>
             </div>
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+            <div className="flex items-center gap-1.5 md:gap-2 overflow-x-auto no-scrollbar">
               {TABS.map(([id, label]) => (
                 <button
                   key={id}
@@ -32,7 +32,7 @@ export default function TopPicksPanel() {
                   onClick={() => setPickCat(id)}
                   aria-pressed={pickCat === id}
                   className={
-                    'flex-none min-h-[40px] px-4 rounded-full font-label-md text-label-md font-semibold whitespace-nowrap transition-colors ' +
+                    'flex-none min-h-[36px] md:min-h-[40px] px-3 md:px-4 rounded-full font-label-sm md:font-label-md text-label-sm md:text-label-md font-semibold whitespace-nowrap transition-colors ' +
                     (pickCat === id ? 'bg-primary text-on-primary' : 'bg-surface-container border border-outline-variant/40 text-on-surface')
                   }
                 >
@@ -41,19 +41,19 @@ export default function TopPicksPanel() {
               ))}
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 md:gap-4 mt-4 md:mt-8">
             {list.map((b) => (
-              <Link key={b.id} href={`/business/${b.id}`} className="bg-surface-container rounded-2xl p-3.5 flex items-center gap-3 hover:shadow-md transition-shadow">
-                <MonoTile business={b} className="w-11 h-11 text-lg rounded-xl" />
+              <Link key={b.id} href={`/business/${b.id}`} className="bg-surface-container rounded-xl md:rounded-2xl p-2.5 md:p-3.5 flex items-center gap-2.5 md:gap-3 hover:shadow-md transition-shadow">
+                <MonoTile business={b} className="w-9 h-9 md:w-11 md:h-11 text-base md:text-lg rounded-lg md:rounded-xl" />
                 <span className="min-w-0 flex-1">
-                  <span className="block font-label-sm text-label-sm font-bold text-amber-700">No. {b.rank}</span>
+                  <span className="block font-label-sm text-label-sm font-bold text-secondary">No. {b.rank}</span>
                   <strong className="block font-label-md text-label-md text-on-surface leading-tight truncate">{b.name}</strong>
                   <small className="text-on-surface-variant font-body-sm text-body-sm">{catOf(b.cat).name}</small>
                 </span>
               </Link>
             ))}
           </div>
-          <p className="font-body-sm text-body-sm text-on-surface-variant mt-6">Sample picks for this mockup. Real picks appear once enough activity is recorded.</p>
+          <p className="font-body-sm text-body-sm text-on-surface-variant mt-4 md:mt-6">Sample picks for this mockup. Real picks appear once enough activity is recorded.</p>
         </div>
       </div>
     </section>
