@@ -21,7 +21,13 @@ export async function generateMetadata({ params }) {
   return {
     title,
     description,
-    openGraph: { title: business.name, description, type: 'website' },
+    /* `url` is one of the four properties the Open Graph spec marks required (og:title,
+       og:type, og:image, og:url) -- without it, some crawlers (WhatsApp's among them, by
+       observation) render the title/description text but drop the image entirely instead of
+       just ignoring the missing field. `alternates.canonical` gets Next to also emit a matching
+       <link rel="canonical">, which is the same URL and cheap to add alongside it. */
+    alternates: { canonical: `/business/${id}` },
+    openGraph: { title: business.name, description, url: `/business/${id}`, siteName: 'SocietySpot', type: 'website' },
     twitter: { card: 'summary_large_image', title: business.name, description }
   };
 }
