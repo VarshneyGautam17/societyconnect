@@ -162,7 +162,16 @@ export default async function Image({ params }) {
     ),
     {
       ...size,
-      fonts
+      fonts,
+      /* Without this, every single fetch of this route -- including WhatsApp/Facebook/Twitter's
+         own crawlers, which tend to have tight timeouts and don't retry -- re-runs the whole
+         generation pipeline from scratch (two live Google Fonts round-trips plus the business
+         photo fetch), observed to sometimes take long enough that WhatsApp gives up on the image
+         and falls back to a text-only (or even blank) card. Caching the *output* means only the
+         first request per business pays that cost; everything after is served instantly from
+         Netlify's CDN. A day is long enough to matter for crawlers, short enough that a changed
+         banner/name shows up in link previews the same day it's edited. */
+      headers: { 'Cache-Control': 'public, max-age=86400, s-maxage=604800, stale-while-revalidate=2592000' }
     }
   );
 }
