@@ -11,7 +11,7 @@ import { loadGoogleFont } from '@/lib/ogFont';
    design tokens as globals.css (kept in sync by eye, not by import -- Satori can't read @theme). */
 
 export const alt = 'SocietySpot business card';
-export const size = { width: 1200, height: 630 };
+export const size = { width: 600, height: 315 };
 export const contentType = 'image/png';
 
 const EMERALD = '#11543b';
@@ -75,8 +75,8 @@ export default async function Image({ params }) {
           <img
             src={imageUrl}
             alt=""
-            width={1200}
-            height={630}
+            width={600}
+            height={315}
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
           />
         )}
@@ -91,25 +91,25 @@ export default async function Image({ params }) {
         />
 
         {/* Brand mark, top-left */}
-        <div style={{ position: 'absolute', top: 44, left: 48, display: 'flex', alignItems: 'center', gap: 14 }}>
+        <div style={{ position: 'absolute', top: 22, left: 24, display: 'flex', alignItems: 'center', gap: 7 }}>
           <div
             style={{
-              width: 56,
-              height: 56,
-              borderRadius: 16,
+              width: 28,
+              height: 28,
+              borderRadius: 8,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: IVORY,
               fontFamily: titleFontFamily,
-              fontSize: 32,
+              fontSize: 16,
               fontWeight: 700,
               color: EMERALD
             }}
           >
             S
           </div>
-          <span style={{ fontSize: 30, fontWeight: 700, color: IVORY, letterSpacing: -0.5 }}>SocietySpot</span>
+          <span style={{ fontSize: 15, fontWeight: 700, color: IVORY, letterSpacing: -0.25 }}>SocietySpot</span>
         </div>
 
         {/* Category pill, top-right */}
@@ -117,15 +117,15 @@ export default async function Image({ params }) {
           <div
             style={{
               position: 'absolute',
-              top: 48,
-              right: 48,
+              top: 24,
+              right: 24,
               display: 'flex',
               alignItems: 'center',
-              padding: '10px 22px',
+              padding: '5px 11px',
               borderRadius: 999,
               backgroundColor: BRASS,
               color: BRASS_TEXT,
-              fontSize: 24,
+              fontSize: 12,
               fontWeight: 700
             }}
           >
@@ -134,29 +134,29 @@ export default async function Image({ params }) {
         )}
 
         {/* Bottom content block */}
-        <div style={{ position: 'absolute', left: 48, right: 48, bottom: 44, display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ position: 'absolute', left: 24, right: 24, bottom: 22, display: 'flex', flexDirection: 'column', gap: 8 }}>
           {(isTopPick || business?.verified) && (
-            <div style={{ display: 'flex', gap: 12 }}>
+            <div style={{ display: 'flex', gap: 6 }}>
               {isTopPick && (
-                <div style={{ display: 'flex', alignItems: 'center', padding: '8px 18px', borderRadius: 999, backgroundColor: BRASS, color: BRASS_TEXT, fontSize: 20, fontWeight: 700 }}>
+                <div style={{ display: 'flex', alignItems: 'center', padding: '4px 9px', borderRadius: 999, backgroundColor: BRASS, color: BRASS_TEXT, fontSize: 10, fontWeight: 700 }}>
                   Top {business.rank} pick this month
                 </div>
               )}
               {business?.verified && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 18px', borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.16)', color: IVORY, fontSize: 20, fontWeight: 700 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 9px', borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.16)', color: IVORY, fontSize: 10, fontWeight: 700 }}>
                   {/* A plain coloured dot instead of a "✓" character -- a Unicode glyph the
                       fallback font (used if the Google Fonts request below fails) doesn't carry
                       would render as a tofu box instead of silently just not being there. */}
-                  <div style={{ width: 10, height: 10, borderRadius: 999, backgroundColor: '#8fd9b6', display: 'flex' }} />
+                  <div style={{ width: 5, height: 5, borderRadius: 999, backgroundColor: '#8fd9b6', display: 'flex' }} />
                   Verified
                 </div>
               )}
             </div>
           )}
-          <span style={{ fontFamily: titleFontFamily, fontSize: 72, fontWeight: 700, color: IVORY, lineHeight: 1.05, letterSpacing: -1.5, maxWidth: 1000 }}>
+          <span style={{ fontFamily: titleFontFamily, fontSize: 36, fontWeight: 700, color: IVORY, lineHeight: 1.05, letterSpacing: -0.75, maxWidth: 500 }}>
             {name}
           </span>
-          <span style={{ fontSize: 30, fontWeight: 500, color: 'rgba(250,248,242,0.85)' }}>{societyLine}</span>
+          <span style={{ fontSize: 15, fontWeight: 500, color: 'rgba(250,248,242,0.85)' }}>{societyLine}</span>
         </div>
       </div>
     ),

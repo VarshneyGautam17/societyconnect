@@ -24,7 +24,7 @@ export async function getBusinessForOg(id) {
       area: local.area,
       verified: local.verified,
       rank: local.rank,
-      imageUrl: bizImg(local, 1200, 630)
+      imageUrl: bizImg(local, 600, 315)
     };
   }
 
@@ -48,6 +48,6 @@ export async function getBusinessForOg(id) {
     area: data.area,
     verified: data.verified,
     rank: null,
-    imageUrl: bizImg({ id: data.id, cat: data.cat, banner: data.banner, photos: data.photos }, 1200, 630)
+    imageUrl: bizImg({ id: data.id, cat: data.cat, banner: data.banner, photos: data.photos }, 600, 315)
   };
 }
