@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og';
+import sharp from 'sharp';
 import { getBusinessForOg } from '@/lib/ogBusiness';
 import { loadGoogleFont } from '@/lib/ogFont';
 
@@ -8,11 +9,19 @@ import { loadGoogleFont } from '@/lib/ogFont';
    re-exporting it, twitter:image) automatically -- see opengraph-image.md in the vendored Next
    docs. Rendered with Satori (`ImageResponse`), which only understands inline flexbox styles, no
    Tailwind classes or CSS variables, so every colour below is a literal hex pulled from the same
-   design tokens as globals.css (kept in sync by eye, not by import -- Satori can't read @theme). */
+   design tokens as globals.css (kept in sync by eye, not by import -- Satori can't read @theme).
+
+   `next/og` only ever rasterizes to lossless PNG -- there's no format option -- so the PNG it
+   produces gets re-encoded below via `sharp` into a quality-92 JPEG before being returned. At
+   that quality JPEG compression is visually indistinguishable from the source (no perceptible
+   data loss), but runs roughly a quarter to a tenth the size of the equivalent PNG for a photo,
+   which is what actually made this load reliably fast once shared (see the Cache-Control note
+   further down for the other half of that fix). `sharp` is in Next's own default
+   serverExternalPackages list, so it needs no next.config.mjs changes to run in a Route Handler. */
 
 export const alt = 'SocietySpot business card';
 export const size = { width: 600, height: 315 };
-export const contentType = 'image/png';
+export const contentType = 'image/jpeg';
 
 const EMERALD = '#11543b';
 const EMERALD_DARK = '#072a1d';
@@ -58,7 +67,7 @@ export default async function Image({ params }) {
     /* Fall through with the generic family names set above. */
   }
 
-  return new ImageResponse(
+  const pngResponse = new ImageResponse(
     (
       <div
         style={{
@@ -162,7 +171,22 @@ export default async function Image({ params }) {
     ),
     {
       ...size,
-      fonts,
+      fonts
+    }
+  );
+
+  const pngBuffer = Buffer.from(await pngResponse.arrayBuffer());
+  const jpegBuffer = await sharp(pngBuffer)
+    /* The PNG has no transparency, but sharp still needs an explicit background to flatten
+       against when it drops the alpha channel for JPEG -- matches the canvas's own base colour
+       so there's no edge artifact if a future layout change ever leaves a sliver unpainted. */
+    .flatten({ background: EMERALD_DARK })
+    .jpeg({ quality: 92, mozjpeg: true })
+    .toBuffer();
+
+  return new Response(jpegBuffer, {
+    headers: {
+      'Content-Type': 'image/jpeg',
       /* Without this, every single fetch of this route -- including WhatsApp/Facebook/Twitter's
          own crawlers, which tend to have tight timeouts and don't retry -- re-runs the whole
          generation pipeline from scratch (two live Google Fonts round-trips plus the business
@@ -171,7 +195,7 @@ export default async function Image({ params }) {
          first request per business pays that cost; everything after is served instantly from
          Netlify's CDN. A day is long enough to matter for crawlers, short enough that a changed
          banner/name shows up in link previews the same day it's edited. */
-      headers: { 'Cache-Control': 'public, max-age=86400, s-maxage=604800, stale-while-revalidate=2592000' }
+      'Cache-Control': 'public, max-age=86400, s-maxage=604800, stale-while-revalidate=2592000'
     }
-  );
+  });
 }
