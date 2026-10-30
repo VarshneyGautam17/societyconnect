@@ -1,4 +1,5 @@
 import { CATEGORIES } from '@/data/categories';
+import { slugify } from '@/lib/slugify';
 import { inputCls } from '@/components/ui/Field';
 import RichTextEditor from '@/components/ui/RichTextEditor';
 import Select from '@/components/ui/Select';
@@ -13,6 +14,20 @@ export default function BasicInfoForm({ v, patch }) {
         <label className="block font-label-md text-label-md font-semibold text-on-surface">
           Business name
           <input value={v.name} onChange={(e) => patch({ name: e.target.value })} maxLength={120} className={`${inputCls} border-outline-variant`} />
+        </label>
+        <label className="block font-label-md text-label-md font-semibold text-on-surface">
+          Your page link
+          <div className="flex items-center mt-2 min-h-[48px] rounded-2xl border border-outline-variant overflow-hidden focus-within:border-primary">
+            <span className="pl-4 pr-1 font-body-sm text-body-sm text-on-surface-variant whitespace-nowrap select-none">societyspot.app/business/</span>
+            <input
+              value={v.slug || ''}
+              onChange={(e) => patch({ slug: slugify(e.target.value) })}
+              placeholder={slugify(v.name) || 'your-business-name'}
+              maxLength={60}
+              className="flex-1 min-w-0 pr-4 py-2.5 bg-transparent font-body-md text-body-md text-on-surface focus:outline-none"
+            />
+          </div>
+          <span className="block mt-1.5 font-body-sm text-body-sm text-on-surface-variant font-normal">Changing this changes the web address residents use to reach your page.</span>
         </label>
         <div className="block font-label-md text-label-md font-semibold text-on-surface">
           Description

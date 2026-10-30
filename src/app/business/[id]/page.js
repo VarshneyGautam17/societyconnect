@@ -13,6 +13,7 @@ import { recordEvent } from '@/store/slices/eventsSlice';
 import { toggleSaved } from '@/store/slices/savedSlice';
 import { createClient } from '@/lib/supabase/client';
 import { dbRowToFormVendor } from '@/lib/businessMapper';
+import { isUuid } from '@/lib/slugify';
 import { useToast } from '@/components/ui/Toast';
 import SiteShell from '@/components/layout/SiteShell';
 import Icon from '@/components/ui/Icon';
@@ -23,6 +24,7 @@ import WhatsAppButton from '@/components/ui/WhatsAppButton';
 import CallButton from '@/components/ui/CallButton';
 import SaveButton from '@/components/ui/SaveButton';
 import EnquiryForm from '@/components/business/EnquiryForm';
+import { BusinessPageSkeleton } from '@/components/ui/Loaders';
 
 const BLOBS = ['blob-shape-1', 'blob-shape-2', 'blob-shape-3', 'blob-shape-4', 'blob-shape-5', 'blob-shape-1'];
 
@@ -46,7 +48,11 @@ export default function BusinessPage() {
   useEffect(() => {
     if (localBusiness || !id) return;
     let cancelled = false;
-    createClient().from('businesses').select('*').eq('id', id).maybeSingle().then(({ data }) => {
+    /* `id` can be either a real row id or a vendor's custom slug (societyspot.app/business/<slug>,
+       set in onboarding/the edit page) -- `id` is a uuid column, so a non-uuid value has to query
+       `slug` instead rather than being compared against `id` directly (Postgres throws a type
+       error on that comparison instead of just finding no match). */
+    createClient().from('businesses').select('*').eq(isUuid(id) ? 'id' : 'slug', id).maybeSingle().then(({ data }) => {
       if (cancelled) return;
       if (data) setRemoteBusiness(dbRowToFormVendor(data));
       setRemoteChecked(true);
@@ -79,7 +85,13 @@ export default function BusinessPage() {
   }, [business, photoSeed]);
 
   if (!business) {
-    if (!remoteChecked) return null;
+    if (!remoteChecked) {
+      return (
+        <SiteShell active="business">
+          <BusinessPageSkeleton />
+        </SiteShell>
+      );
+    }
     return (
       <SiteShell active="business">
         <div className="max-w-7xl mx-auto px-4 md:px-8">

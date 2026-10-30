@@ -212,12 +212,42 @@ body {
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
+/* Shimmer sweep for skeleton loaders -- a soft brass-tinted highlight passing over a muted
+   surface-container block, used everywhere content is still being fetched (section skeletons,
+   card placeholders) instead of a flat pulsing block, to feel premium rather than generic. */
+@keyframes shimmerSweep {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-container) 0%,
+    var(--color-surface-container-high) 50%,
+    var(--color-surface-container) 100%
+  );
+  background-size: 800px 100%;
+  animation: shimmerSweep 1.6s ease-in-out infinite;
+}
+
+@keyframes spinnerRotate {
+  to { transform: rotate(360deg); }
+}
+.animate-spinner { animation: spinnerRotate 0.8s linear infinite; }
+
+@keyframes loaderFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-loader-fade { animation: loaderFadeIn 0.2s ease-out both; }
+
 /* Belt-and-braces reduced-motion support: Reveal/CountUp already skip themselves via
    matchMedia, but this also catches the plain CSS keyframe animations above for anyone whose
    browser doesn't run that JS check in time (e.g. the very first paint). */
 @media (prefers-reduced-motion: reduce) {
   .animate-gentle-drift, .animate-blob-drift, .animate-blob-drift-slow,
-  .animate-heart-pop, .animate-fade-up, .animate-gate-slide-up, .animate-select-pop, .animate-check-pop {
+  .animate-heart-pop, .animate-fade-up, .animate-gate-slide-up, .animate-select-pop, .animate-check-pop,
+  .animate-shimmer {
     animation: none !important;
   }
 }

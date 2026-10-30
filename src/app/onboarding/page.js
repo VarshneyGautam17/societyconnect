@@ -20,11 +20,12 @@ import StepOfferings from '@/components/onboarding/steps/StepOfferings';
 import Icon from '@/components/ui/Icon';
 
 const STEP_COUNT = 5;
-const EMPTY_DRAFT = { phone: '', otpSent: false, otp: '', name: '', cat: '', desc: '', whatsapp: '', call: '', same: true, served: [], area: '', items: [['', '', '']], offer: '', banner: null, photos: [] };
+const EMPTY_DRAFT = { phone: '', otpSent: false, otp: '', name: '', slug: '', slugCustom: false, cat: '', desc: '', whatsapp: '', call: '', same: true, served: [], area: '', items: [['', '', '']], offer: '', banner: null, photos: [] };
 
 function buildVendor(draft) {
   const vendor = defaultVendor();
   vendor.name = draft.name;
+  vendor.slug = draft.slug || '';
   vendor.cat = draft.cat;
   vendor.desc = draft.desc || 'New local business.';
   vendor.society = draft.served[0] || 'prestige';
@@ -48,6 +49,7 @@ function validateStep(step, draft) {
     if (!/^\d{10}$/.test(draft.phone)) errors.phone = 'Enter a 10-digit mobile number.';
   } else if (step === 1) {
     if (!draft.name.trim()) errors.name = 'Please enter your business name.';
+    if (!draft.slug) errors.slug = 'Choose a web address for your page.';
     if (!draft.cat) errors.cat = 'Please choose a category.';
     if (!/^\d{10}$/.test(draft.whatsapp)) errors.whatsapp = 'Enter a 10-digit WhatsApp number.';
   } else if (step === 2) {
@@ -149,8 +151,21 @@ export default function OnboardingPage() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)] gap-6 items-start pb-16">
-            <Stepper step={step} />
+          <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-6 items-start pb-16">
+            <div className="flex flex-col gap-5 lg:sticky lg:top-6">
+              <Stepper step={step} />
+              {step < 4 && (
+                <div className="hidden lg:block bg-surface-container-lowest rounded-3xl p-5 border border-outline-variant/30 shadow-sm">
+                  <h3 className="font-label-sm text-label-sm font-bold text-on-surface-variant uppercase tracking-wide mb-1">Live preview</h3>
+                  <p className="font-body-sm text-body-sm text-on-surface-variant mb-4">Updates as you fill the form, so you can see exactly what you&apos;re about to publish.</p>
+                  <div className="flex items-center gap-2 rounded-xl bg-surface-container px-3 py-2.5 mb-4 font-body-sm text-body-sm text-on-surface-variant">
+                    <Icon name="link" className="text-sm flex-none text-outline" />
+                    <span className="truncate">societyspot.app/business/<strong className="text-on-surface font-semibold">{draft.slug || 'your-business'}</strong></span>
+                  </div>
+                  <PreviewCard business={buildVendor(draft)} />
+                </div>
+              )}
+            </div>
             <section className="bg-surface-container-lowest rounded-3xl p-6 md:p-8 border border-outline-variant/30 shadow-sm" aria-live="polite">
               {step < 4 ? (
                 <form onSubmit={onSubmit} noValidate>

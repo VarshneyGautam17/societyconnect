@@ -58,9 +58,7 @@ export default function TopPicksPanel() {
                 <Reveal key={b.id} delay={(i % 8) * 45} distance={12}>
                   <Link
                     href={`/business/${b.id}`}
-                    className={`group relative flex items-center gap-3 rounded-2xl p-2.5 md:p-3 border transition-all hover:shadow-md hover:-translate-y-0.5 ${
-                      b.rank <= 3 ? 'bg-gradient-to-br from-secondary-fixed/40 to-surface-container-lowest border-secondary-fixed' : 'bg-surface-container border-transparent'
-                    }`}
+                    className="group relative flex items-center gap-3 rounded-2xl p-2.5 md:p-3 border border-outline-variant/30 bg-surface-container transition-all hover:shadow-md hover:-translate-y-0.5"
                   >
                     <div className="relative flex-none">
                       <div className={`w-14 h-14 md:w-16 md:h-16 ${blobOf(b.id)} overflow-hidden bg-surface-container-high border-2 border-surface-container-lowest`}>

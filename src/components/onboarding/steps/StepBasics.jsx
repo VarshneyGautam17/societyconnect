@@ -1,9 +1,27 @@
 import { CATEGORIES } from '@/data/categories';
+import { slugify } from '@/lib/slugify';
 import Field, { inputCls } from '@/components/ui/Field';
 import Icon from '@/components/ui/Icon';
 import RichTextEditor from '@/components/ui/RichTextEditor';
 
 export default function StepBasics({ draft, patch, errors }) {
+  function onNameChange(name) {
+    /* Keeps the URL field following the business name right up until the vendor deliberately
+       edits it themselves -- same "auto-slug until touched" pattern most site builders use, so
+       typos in the name don't silently leave a stale URL behind, but a custom choice also never
+       gets clobbered. */
+    if (draft.slugCustom) {
+      patch({ name });
+    } else {
+      patch({ name, slug: slugify(name) });
+    }
+  }
+
+  function onSlugChange(raw) {
+    const slug = slugify(raw);
+    patch({ slug, slugCustom: slug.length > 0 });
+  }
+
   return (
     <>
       <h2 className="font-headline-sm text-headline-sm text-on-surface mb-5">Tell us about your business</h2>
@@ -11,11 +29,24 @@ export default function StepBasics({ draft, patch, errors }) {
         <Field label="Business name" error={errors.name}>
           <input
             value={draft.name}
-            onChange={(e) => patch({ name: e.target.value })}
+            onChange={(e) => onNameChange(e.target.value)}
             placeholder="e.g. Annapurna Home Kitchen"
             maxLength={120}
             className={`${inputCls} ${errors.name ? 'border-error' : 'border-outline-variant'}`}
           />
+        </Field>
+
+        <Field label="Your page link" hint="This is the web address residents (and anyone you share it with) will use to find your page.">
+          <div className={`flex items-center mt-2 min-h-[48px] rounded-2xl border overflow-hidden focus-within:border-primary ${errors.slug ? 'border-error' : 'border-outline-variant'}`}>
+            <span className="pl-4 pr-1 font-body-sm text-body-sm text-on-surface-variant whitespace-nowrap select-none">societyspot.app/business/</span>
+            <input
+              value={draft.slug}
+              onChange={(e) => onSlugChange(e.target.value)}
+              placeholder="your-business-name"
+              maxLength={60}
+              className="flex-1 min-w-0 pr-4 py-2.5 bg-transparent font-body-md text-body-md text-on-surface focus:outline-none"
+            />
+          </div>
         </Field>
 
         <fieldset className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 border-0 p-0 m-0" aria-label="Category">

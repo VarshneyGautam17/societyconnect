@@ -9,6 +9,7 @@ import { downloadCsv } from '@/lib/exportCsv';
 import { stripRichText } from '@/lib/richText';
 import { useToast } from '@/components/ui/Toast';
 import Icon from '@/components/ui/Icon';
+import { Spinner } from '@/components/ui/Loaders';
 
 const STATUS_STYLE = {
   approved: 'bg-emerald-100 text-emerald-800',
@@ -76,14 +77,16 @@ function Row({ business }) {
             onClick={onToggle}
             disabled={pending || business.status === 'pending'}
             title={business.status === 'pending' ? 'Review from Vendor requests first' : undefined}
-            className="inline-flex items-center px-3 py-1.5 rounded-full border border-outline-variant text-on-surface font-label-sm text-label-sm font-semibold hover:border-primary transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-outline-variant text-on-surface font-label-sm text-label-sm font-semibold hover:border-primary transition-colors disabled:opacity-50"
           >
+            {pending && <Spinner className="w-3.5 h-3.5" />}
             {enabled ? 'Disable' : 'Enable'}
           </button>
           <Link href={`/admin/businesses/${business.id}/edit`} className="inline-flex items-center px-3 py-1.5 rounded-full border border-outline-variant text-on-surface font-label-sm text-label-sm font-semibold hover:border-primary transition-colors">
             Edit
           </Link>
-          <button type="button" onClick={onDelete} disabled={pending} className="inline-flex items-center px-3 py-1.5 rounded-full border border-outline-variant text-error font-label-sm text-label-sm font-semibold hover:bg-error hover:text-white transition-colors disabled:opacity-50">
+          <button type="button" onClick={onDelete} disabled={pending} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-outline-variant text-error font-label-sm text-label-sm font-semibold hover:bg-error hover:text-white transition-colors disabled:opacity-50">
+            {pending && <Spinner className="w-3.5 h-3.5" />}
             Delete
           </button>
         </div>

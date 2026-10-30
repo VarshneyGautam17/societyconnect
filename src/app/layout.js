@@ -1,9 +1,26 @@
 import './globals.css';
 import Providers from './providers';
 
+/* Falls back to localhost in dev so `next dev` never throws over a missing metadataBase; set
+   NEXT_PUBLIC_SITE_URL in production (see .env.local.example) so share-poster/og:image URLs
+   resolve to the real deployed domain instead. */
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+
 export const metadata = {
+  metadataBase: new URL(SITE_URL),
   title: 'SocietySpot: trusted local businesses in your society',
-  description: 'Discover and list trusted local businesses in your residential society.'
+  description: 'Discover and list trusted local businesses in your residential society.',
+  openGraph: {
+    title: 'SocietySpot: trusted local businesses in your society',
+    description: 'Discover and list trusted local businesses in your residential society.',
+    siteName: 'SocietySpot',
+    type: 'website'
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'SocietySpot: trusted local businesses in your society',
+    description: 'Discover and list trusted local businesses in your residential society.'
+  }
 };
 
 export default function RootLayout({ children }) {

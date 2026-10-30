@@ -68,12 +68,18 @@ create table if not exists businesses (
   -- (image-only, 8MB input cap, recompressed to WebP <=1.5MB) -- see lib/imageUpload.js.
   banner text,
   photos jsonb not null default '[]',
+  -- Optional vendor-chosen vanity URL segment (societyspot.app/business/<slug>), shown and
+  -- editable in onboarding/the dashboard edit page. business/[id] resolves either the real id
+  -- or this slug (see src/app/business/[id]/page.js), so it's safe to leave blank ('') -- the
+  -- id-based link keeps working either way.
+  slug text not null default '',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
--- Idempotent for databases where schema.sql already ran before `banner` existed.
+-- Idempotent for databases where schema.sql already ran before `banner`/`slug` existed.
 alter table businesses add column if not exists banner text;
+alter table businesses add column if not exists slug text not null default '';
 
 create index if not exists businesses_society_status_idx on businesses (society) where status = 'approved';
 create index if not exists businesses_status_idx on businesses (status);
@@ -308,6 +314,15 @@ alter table businesses add constraint businesses_rejection_reason_check check (c
 
 alter table businesses drop constraint if exists businesses_banner_check;
 alter table businesses add constraint businesses_banner_check check (banner is null or char_length(banner) <= 300);
+
+-- slug: same charset slugify() in src/lib/slugify.js produces (lowercase letters/digits joined
+-- by single hyphens), or '' for "hasn't set one". Uniqueness is case-sensitive-irrelevant here
+-- since slugify() already lowercases, so a plain unique index (not a lower() one) is enough.
+alter table businesses drop constraint if exists businesses_slug_check;
+alter table businesses add constraint businesses_slug_check
+  check (slug = '' or slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$');
+alter table businesses alter column slug set default '';
+create unique index if not exists businesses_slug_unique_idx on businesses (slug) where slug <> '';
 
 alter table businesses drop constraint if exists businesses_items_check;
 alter table businesses add constraint businesses_items_check check (is_valid_items(items));

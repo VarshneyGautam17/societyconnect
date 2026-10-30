@@ -8,6 +8,7 @@ export function dbRowToFormVendor(row) {
   return {
     id: row.id,
     name: row.name,
+    slug: row.slug || '',
     cat: row.cat,
     society: row.society,
     served: row.served || [],
@@ -29,6 +30,7 @@ export function dbRowToFormVendor(row) {
 export function formVendorToDbPatch(v) {
   return {
     name: v.name,
+    slug: v.slug || '',
     cat: v.cat,
     society: v.served?.[0] || v.society,
     served: v.served,

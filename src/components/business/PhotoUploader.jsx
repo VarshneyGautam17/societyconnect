@@ -6,6 +6,7 @@ import { imgUrl, seedOf } from '@/lib/images';
 import { uploadImage, cloudinaryUrl } from '@/lib/cloudinary';
 import { useToast } from '@/components/ui/Toast';
 import Icon from '@/components/ui/Icon';
+import { Overlay, Spinner } from '@/components/ui/Loaders';
 
 const BLOBS = ['blob-shape-2', 'blob-shape-4', 'blob-shape-5', 'blob-shape-1'];
 const MAX_PHOTOS = 6;
@@ -92,7 +93,8 @@ export default function PhotoUploader({ v, patch }) {
             alt=""
             loading="lazy"
           />
-          {!v.banner && <span className="absolute bottom-2 left-2 font-label-sm text-label-sm font-bold text-white bg-on-surface/60 px-2.5 py-1 rounded-full">Sample banner</span>}
+          {uploadingBanner && <Overlay label="Uploading..." />}
+          {!v.banner && !uploadingBanner && <span className="absolute bottom-2 left-2 font-label-sm text-label-sm font-bold text-white bg-on-surface/60 px-2.5 py-1 rounded-full">Sample banner</span>}
           <div className="absolute top-2 right-2 flex gap-2">
             {v.banner && (
               <button
@@ -147,9 +149,9 @@ export default function PhotoUploader({ v, patch }) {
               type="button"
               onClick={() => photoInputRef.current?.click()}
               disabled={uploadingPhoto}
-              className="aspect-square rounded-2xl border-2 border-dashed border-primary/40 text-primary font-label-md text-label-md font-semibold hover:bg-primary-fixed/40 transition-colors disabled:opacity-60"
+              className="aspect-square rounded-2xl border-2 border-dashed border-primary/40 text-primary font-label-md text-label-md font-semibold hover:bg-primary-fixed/40 transition-colors disabled:opacity-60 flex flex-col items-center justify-center gap-1.5"
             >
-              {uploadingPhoto ? 'Uploading...' : 'Add photo'}
+              {uploadingPhoto ? <Spinner className="w-5 h-5" /> : 'Add photo'}
             </button>
           )}
         </div>

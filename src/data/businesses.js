@@ -44,7 +44,7 @@ export const OFFERS_VALID = ['Valid till 15 Nov', 'This month', 'Valid till 30 N
 
 export function defaultVendor() {
   return {
-    id: 'mine', name: 'Kavya Home Kitchen', cat: 'food', society: 'prestige', area: 'Tower G',
+    id: 'mine', name: 'Kavya Home Kitchen', slug: 'kavya-home-kitchen', cat: 'food', society: 'prestige', area: 'Tower G',
     desc: 'A home kitchen serving fresh North Indian meals to families and working professionals in the society.',
     verified: false, offer: '10% off your first order', offerValid: '15 Nov 2026',
     items: DEFAULT_ITEMS.food.map((r) => r.slice()),

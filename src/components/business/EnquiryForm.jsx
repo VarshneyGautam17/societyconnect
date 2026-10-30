@@ -6,6 +6,7 @@ import { addEnquiry } from '@/store/slices/enquiriesSlice';
 import { recordEvent } from '@/store/slices/eventsSlice';
 import { createClient } from '@/lib/supabase/client';
 import { useToast } from '@/components/ui/Toast';
+import { Spinner } from '@/components/ui/Loaders';
 
 export default function EnquiryForm({ businessId, isRemote = false }) {
   const dispatch = useDispatch();
@@ -14,6 +15,7 @@ export default function EnquiryForm({ businessId, isRemote = false }) {
   const [msg, setMsg] = useState('');
   const [company, setCompany] = useState(''); // honeypot: real visitors never see or fill this field
   const [error, setError] = useState('');
+  const [sending, setSending] = useState(false);
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -31,21 +33,26 @@ export default function EnquiryForm({ businessId, isRemote = false }) {
       return;
     }
     setError('');
-    if (isRemote) {
-      const supabase = createClient();
-      const { error: insertError } = await supabase.from('enquiries').insert({ business_id: businessId, who: trimmedName, msg: trimmedMsg });
-      if (insertError) {
-        toast('Could not send that enquiry. Try again.');
-        return;
+    setSending(true);
+    try {
+      if (isRemote) {
+        const supabase = createClient();
+        const { error: insertError } = await supabase.from('enquiries').insert({ business_id: businessId, who: trimmedName, msg: trimmedMsg });
+        if (insertError) {
+          toast('Could not send that enquiry. Try again.');
+          return;
+        }
+        supabase.from('events').insert({ business_id: businessId, type: 'enquiry' });
+      } else {
+        dispatch(addEnquiry({ biz: businessId, who: trimmedName, msg: trimmedMsg, t: Date.now() }));
+        dispatch(recordEvent({ type: 'enquiry', id: businessId }));
       }
-      supabase.from('events').insert({ business_id: businessId, type: 'enquiry' });
-    } else {
-      dispatch(addEnquiry({ biz: businessId, who: trimmedName, msg: trimmedMsg, t: Date.now() }));
-      dispatch(recordEvent({ type: 'enquiry', id: businessId }));
+      setName('');
+      setMsg('');
+      toast('Enquiry sent. The vendor will see it in their dashboard.');
+    } finally {
+      setSending(false);
     }
-    setName('');
-    setMsg('');
-    toast('Enquiry sent. The vendor will see it in their dashboard.');
   }
 
   return (
@@ -77,8 +84,9 @@ export default function EnquiryForm({ businessId, isRemote = false }) {
         />
       </label>
       {error && <span className="font-body-sm text-body-sm text-error">{error}</span>}
-      <button type="submit" className="inline-flex items-center justify-center min-h-[44px] px-5 rounded-full bg-primary text-on-primary font-label-md md:font-label-lg text-label-md md:text-label-lg font-semibold hover:bg-primary-container transition-colors">
-        Send enquiry
+      <button type="submit" disabled={sending} className="inline-flex items-center justify-center gap-2 min-h-[44px] px-5 rounded-full bg-primary text-on-primary font-label-md md:font-label-lg text-label-md md:text-label-lg font-semibold hover:bg-primary-container transition-colors disabled:opacity-70">
+        {sending && <Spinner className="w-4 h-4" />}
+        {sending ? 'Sending...' : 'Send enquiry'}
       </button>
       <p className="font-body-sm text-body-sm text-on-surface-variant">Demo: in the live product you would be asked to log in so the vendor can reply.</p>
     </form>

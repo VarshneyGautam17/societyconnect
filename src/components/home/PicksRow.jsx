@@ -40,9 +40,7 @@ export default function PicksRow() {
               <Reveal key={b.id} delay={(i % 6) * 60} distance={14} className="flex-none">
                 <Link
                   href={`/business/${b.id}`}
-                  className={`group block w-36 md:w-48 rounded-2xl md:rounded-3xl p-2.5 md:p-3.5 border shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col gap-2.5 md:gap-3 ${
-                    rank <= 3 ? 'bg-gradient-to-br from-secondary-fixed/40 to-surface-container-lowest border-secondary-fixed' : 'bg-surface-container-lowest border-outline-variant/40'
-                  }`}
+                  className="group block w-36 md:w-48 rounded-2xl md:rounded-3xl p-2.5 md:p-3.5 border border-outline-variant/40 bg-surface-container-lowest shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col gap-2.5 md:gap-3"
                 >
                   <div className="relative">
                     <div className={`w-full aspect-square ${blobOf(b.id)} overflow-hidden bg-surface-container-high border-2 border-surface-container-lowest`}>
