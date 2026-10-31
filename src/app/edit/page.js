@@ -47,7 +47,7 @@ export default function EditPage() {
     setV(published);
     dispatch(setVendor(published));
     setDirty(false);
-    toast('Published. Your page is updated for residents.');
+    toast(v.remoteId ? 'Saved on this device. Your submitted listing is unchanged for now.' : 'Saved.');
   }
 
   function onPreviewClick(e) {

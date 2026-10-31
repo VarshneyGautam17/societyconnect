@@ -40,7 +40,7 @@ export default function Sidebar({ vendor, live, onSoonClick }) {
         <MonoTile business={vendor} className="w-9 h-9 text-base rounded-xl" />
         <span className="min-w-0">
           <strong className="block font-label-md text-label-md text-on-surface truncate">{vendor.name}</strong>
-          <small className="font-label-sm text-label-sm text-on-surface-variant">{live ? 'Published' : 'Draft'}</small>
+          <small className="font-label-sm text-label-sm text-on-surface-variant">{!live ? 'Draft' : !vendor.remoteId ? 'Not submitted' : ({ approved: 'Live', pending: 'In review', rejected: 'Not approved', disabled: 'Switched off' }[vendor.status] || 'In review')}</small>
         </span>
       </div>
     </aside>

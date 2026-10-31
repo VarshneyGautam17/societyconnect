@@ -1,13 +1,8 @@
-import { createSelector } from '@reduxjs/toolkit';
-
 /* The one place that decides "what businesses exist": approved listings from Supabase (see
-   src/lib/listings.js), plus the vendor's own listing on this device once they've published it.
-   Every page selects through this, so a publish from the dashboard/onboarding flow shows up
-   everywhere else immediately. */
-export const selectAllBusinesses = createSelector(
-  [(state) => state.vendor.current, (state) => state.listings.items],
-  (vendor, listings) => (vendor && vendor.published ? [vendor, ...listings] : listings)
-);
+   src/lib/listings.js). The vendor's own copy on this device ("mine") isn't included -- their
+   listing shows up here once an admin approves it, as the real row -- but /business/mine still
+   previews it for them. */
+export const selectAllBusinesses = (state) => state.listings.items;
 
 /** True until the first listings fetch has finished (successfully or not). */
 export function selectListingsLoading(state) {

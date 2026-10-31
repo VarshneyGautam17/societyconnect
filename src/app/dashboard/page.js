@@ -1,8 +1,10 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { updateVendor } from '@/store/slices/vendorSlice';
+import { getListingStatus } from '@/app/onboarding/listing';
 import Icon from '@/components/ui/Icon';
 import { useToast } from '@/components/ui/Toast';
 import Sidebar from '@/components/dashboard/Sidebar';
@@ -18,8 +20,21 @@ export default function DashboardPage() {
   const enquiries = useSelector((state) => state.enquiries.list);
   const savedIds = useSelector((state) => state.saved.ids);
 
+  const dispatch = useDispatch();
   const live = !!(storedVendor && storedVendor.published);
   const vendor = storedVendor;
+  const status = vendor?.remoteId ? vendor.status : 'unsent';
+
+  /* The admin's decision lives in the database; refresh the copy on this device. */
+  useEffect(() => {
+    if (!vendor?.remoteId) return;
+    getListingStatus(vendor.remoteId).then((res) => {
+      if (res && (res.status !== vendor.status || res.reason !== (vendor.rejectionReason || ''))) {
+        dispatch(updateVendor({ status: res.status, rejectionReason: res.reason }));
+      }
+    }).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per visit
+  }, [vendor?.remoteId]);
 
   const data = useMemo(() => {
     if (live) {
@@ -92,13 +107,29 @@ export default function DashboardPage() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="font-headline-lg text-headline-md text-on-surface tracking-tight">Namaste, {vendor.name.split(' ')[0]}</h1>
-            <p className="font-body-md text-body-md text-on-surface-variant mt-1">Your business page is live. Here is how it is doing.</p>
+            <p className="font-body-md text-body-md text-on-surface-variant mt-1">
+              {status === 'approved' ? 'Your business page is live. Here is how it is doing.' : 'Here is where your listing stands.'}
+            </p>
           </div>
           <div className="flex flex-wrap gap-2.5">
             <Link href="/business/mine" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-outline-variant text-on-surface font-label-lg text-label-lg font-semibold hover:border-primary hover:text-primary transition-colors">View as resident</Link>
             <Link href="/edit" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-on-primary font-label-lg text-label-lg font-semibold hover:bg-primary-container shadow-sm transition-colors">Edit business page</Link>
           </div>
         </div>
+
+        {status !== 'approved' && (
+          <div className={`rounded-2xl px-5 py-4 border ${status === 'rejected' || status === 'disabled' ? 'bg-error-container/40 border-error/30' : 'bg-secondary-fixed/50 border-secondary-fixed'}`}>
+            <strong className="block font-label-lg text-label-lg text-on-surface">
+              {{ pending: 'Waiting for approval', rejected: 'Your listing was not approved', disabled: 'Your listing is switched off', unsent: 'Not submitted yet' }[status] || 'Waiting for approval'}
+            </strong>
+            <span className="font-body-sm text-body-sm text-on-surface-variant">
+              {status === 'pending' && 'Our team is reviewing your listing, usually within a day. Residents will see it once it is approved.'}
+              {status === 'rejected' && (vendor.rejectionReason ? `Reason: ${vendor.rejectionReason}` : 'Contact us to find out why.')}
+              {status === 'disabled' && 'An admin has hidden your listing from residents. Contact us to switch it back on.'}
+              {status === 'unsent' && <>This listing is only saved on this device. <Link href="/onboarding" className="font-bold underline">Submit it for review</Link> so residents can find you.</>}
+            </span>
+          </div>
+        )}
 
         <div className="bg-emerald-50 border border-emerald-200 rounded-2xl px-5 py-4 flex flex-wrap items-center justify-between gap-3">
           <div>

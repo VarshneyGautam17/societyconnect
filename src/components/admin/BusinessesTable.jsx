@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react';
 import Link from 'next/link';
-import { setBusinessEnabled, deleteBusinessPermanently } from '@/app/admin/actions';
+import { approveBusiness, rejectBusiness, setBusinessEnabled, deleteBusinessPermanently } from '@/app/admin/actions';
 import { socOf } from '@/data/societies';
 import { useSocieties } from '@/lib/societies';
 import { catOf } from '@/data/categories';
@@ -19,6 +19,8 @@ const STATUS_STYLE = {
   rejected: 'bg-red-100 text-red-800'
 };
 
+const STATUS_LABEL = { approved: 'Live', pending: 'Pending review', disabled: 'Switched off', rejected: 'Rejected' };
+
 const EXPORT_COLUMNS = [
   ['name', 'Name'], ['cat', 'Category'], ['society', 'Society'], ['area', 'Area'],
   ['status', 'Status'], ['views', 'Views'], ['contacts', 'Contact attempts'],
@@ -31,15 +33,29 @@ function Row({ business }) {
   const [pending, startTransition] = useTransition();
   const enabled = business.status === 'approved';
 
-  function onToggle() {
+  function run(action, done) {
     startTransition(async () => {
       try {
-        await setBusinessEnabled(business.id, !enabled);
-        toast(enabled ? `${business.name} disabled.` : `${business.name} enabled.`);
+        await action();
+        toast(done);
       } catch (err) {
         toast(err.message || 'Could not update that listing.');
       }
     });
+  }
+
+  function onToggle() {
+    run(() => setBusinessEnabled(business.id, !enabled), enabled ? `${business.name} switched off.` : `${business.name} is live again.`);
+  }
+
+  function onApprove() {
+    run(() => approveBusiness(business.id), `${business.name} approved and live.`);
+  }
+
+  function onReject() {
+    const reason = window.prompt(`Reject "${business.name}"? Optionally tell the vendor why:`, '');
+    if (reason === null) return;
+    run(() => rejectBusiness(business.id, reason.trim().slice(0, 500)), `${business.name} rejected.`);
   }
 
   function onDelete() {
@@ -62,7 +78,10 @@ function Row({ business }) {
       </td>
       <td className="py-3 pr-4 font-body-sm text-body-sm text-on-surface-variant whitespace-nowrap">{catOf(business.cat).name}</td>
       <td className="py-3 pr-4">
-        <span className={`font-label-sm text-label-sm font-bold px-2.5 py-1 rounded-full whitespace-nowrap ${STATUS_STYLE[business.status] || ''}`}>{business.status}</span>
+        <span className={`font-label-sm text-label-sm font-bold px-2.5 py-1 rounded-full whitespace-nowrap ${STATUS_STYLE[business.status] || ''}`}>{STATUS_LABEL[business.status] || business.status}</span>
+        {business.status === 'rejected' && business.rejection_reason && (
+          <span className="block mt-1 max-w-[180px] font-body-sm text-body-sm text-on-surface-variant line-clamp-2" title={business.rejection_reason}>{business.rejection_reason}</span>
+        )}
       </td>
       <td className="py-3 pr-4 font-body-sm text-body-sm text-on-surface whitespace-nowrap">
         <strong className="font-label-md text-label-md text-on-surface">{business.views}</strong> views
@@ -73,16 +92,26 @@ function Row({ business }) {
       </td>
       <td className="py-3 pr-4">
         <div className="flex items-center gap-2 flex-wrap">
-          <button
-            type="button"
-            onClick={onToggle}
-            disabled={pending || business.status === 'pending'}
-            title={business.status === 'pending' ? 'Review from Vendor requests first' : undefined}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-outline-variant text-on-surface font-label-sm text-label-sm font-semibold hover:border-primary transition-colors disabled:opacity-50"
-          >
-            {pending && <Spinner className="w-3.5 h-3.5" />}
-            {enabled ? 'Disable' : 'Enable'}
-          </button>
+          {/* What an admin can do depends on where the listing is: a new submission gets
+              approve/reject, a live one can be switched off and back on, a rejected one can
+              still be approved if the decision changes. */}
+          {(business.status === 'pending' || business.status === 'rejected') && (
+            <button type="button" onClick={onApprove} disabled={pending} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border font-label-sm text-label-sm font-semibold transition-colors disabled:opacity-50 bg-primary border-primary text-on-primary hover:bg-primary-container">
+              {pending && <Spinner className="w-3.5 h-3.5" />}
+              Approve
+            </button>
+          )}
+          {business.status === 'pending' && (
+            <button type="button" onClick={onReject} disabled={pending} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border font-label-sm text-label-sm font-semibold transition-colors disabled:opacity-50 border-outline-variant text-on-surface hover:border-error hover:text-error">
+              Reject
+            </button>
+          )}
+          {(business.status === 'approved' || business.status === 'disabled') && (
+            <button type="button" onClick={onToggle} disabled={pending} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border font-label-sm text-label-sm font-semibold transition-colors disabled:opacity-50 border-outline-variant text-on-surface hover:border-primary">
+              {pending && <Spinner className="w-3.5 h-3.5" />}
+              {enabled ? 'Switch off' : 'Switch on'}
+            </button>
+          )}
           <Link href={`/admin/businesses/${business.id}/edit`} className="inline-flex items-center px-3 py-1.5 rounded-full border border-outline-variant text-on-surface font-label-sm text-label-sm font-semibold hover:border-primary transition-colors">
             Edit
           </Link>

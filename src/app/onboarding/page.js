@@ -4,9 +4,10 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Link from 'next/link';
 import { emptyVendor } from '@/data/businesses';
-import { publishVendor } from '@/store/slices/vendorSlice';
+import { publishVendor, setVendor } from '@/store/slices/vendorSlice';
 import { upsertSociety } from '@/data/societies';
 import { resolveVendorSociety } from '@/app/onboarding/actions';
+import { submitListing } from '@/app/onboarding/listing';
 import { storageGet, storageSet } from '@/lib/storage';
 import { useToast } from '@/components/ui/Toast';
 import Header from '@/components/layout/Header';
@@ -36,9 +37,11 @@ function buildVendor(draft) {
   vendor.society = own;
   vendor.served = [...new Set([own, ...draft.served].filter(Boolean))];
   vendor.area = draft.area || 'In the society';
-  const num = draft.same ? draft.whatsapp : draft.call;
-  vendor.phone = '+91 ' + num.replace(/^(\d{2})\d{3}(\d{3})(\d{2})$/, '$1XXX XXX$3');
-  vendor.whatsapp = vendor.phone;
+  /* The real numbers -- the business page masks the call number until a resident taps
+     "show" (hidePhone), so nothing here needs to hide it. */
+  const fmt = (n) => (n ? `+91 ${n.slice(0, 5)} ${n.slice(5)}` : '');
+  vendor.whatsapp = fmt(draft.whatsapp);
+  vendor.phone = draft.same ? vendor.whatsapp : fmt(draft.call) || vendor.whatsapp;
   vendor.offer = draft.offer;
   vendor.offerValid = draft.offer ? 'Mention SocietySpot when you order.' : '';
   vendor.items = draft.items.filter((r) => r[0].trim()).map((r) => [r[0], r[1] || '', r[2] || 'On request']);
@@ -78,6 +81,7 @@ export default function OnboardingPage() {
   const [errors, setErrors] = useState({});
   const [justPublished, setJustPublished] = useState(false);
   const [checking, setChecking] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     /* localStorage only exists in the browser, so this one-time hydration has to happen post-mount
@@ -151,20 +155,66 @@ export default function OnboardingPage() {
     setStep((s) => s + 1);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
-  function onPublish() {
+  /* Sends a listing to the database for admin review (src/app/onboarding/listing.js) and keeps
+     a copy on this device for the vendor's dashboard. Field errors jump back to their step. */
+  async function sendForReview(built) {
+    setSubmitting(true);
+    let res;
+    try {
+      res = await submitListing(built);
+    } catch {
+      res = { error: 'Could not submit right now. Check your connection and try again.' };
+    }
+    setSubmitting(false);
+    if (res.error) {
+      const stepOf = { name: 1, slug: 1, cat: 1, whatsapp: 1, address: 2, items: 3 };
+      if (res.field in stepOf && !alreadyPublished) {
+        setStep(stepOf[res.field]);
+        setErrors({ [res.field]: res.error });
+      }
+      toast(res.error);
+      return false;
+    }
+    dispatch(publishVendor({ ...built, remoteId: res.id, status: res.status }));
+    return true;
+  }
+
+  async function onPublish() {
+    if (submitting) return;
     if (draft.society?.key !== addressKey(draft)) {
       setStep(2);
       setErrors({ address: 'Please confirm your society address before publishing.' });
       return;
     }
-    const built = buildVendor(draft);
-    dispatch(publishVendor(built));
+    if (!(await sendForReview(buildVendor(draft)))) return;
     storageSet('draft', null);
     setJustPublished(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  /* Reopens the form pre-filled from a listing that never reached the database. Its phone was
+     stored masked and its address wasn't kept, so those two get entered again. */
+  function reopenForReview() {
+    const digits = (n) => (/^\+91 \d{5} \d{5}$/.test(n || '') ? n.replace(/\D/g, '').slice(-10) : '');
+    const next = {
+      ...EMPTY_DRAFT,
+      phone: draft.phone, otpSent: false,
+      name: vendor.name || '', slug: vendor.slug || '', slugCustom: Boolean(vendor.slug), cat: vendor.cat || '',
+      desc: vendor.desc || '', whatsapp: digits(vendor.whatsapp), area: vendor.area === 'In the society' ? '' : vendor.area || '',
+      served: (vendor.served || []).filter((id) => id !== vendor.society),
+      items: vendor.items?.length ? vendor.items.map((r) => r.slice()) : EMPTY_DRAFT.items,
+      offer: vendor.offer || '', banner: vendor.banner || null, photos: vendor.photos || []
+    };
+    setDraft(next);
+    storageSet('draft', next);
+    dispatch(setVendor(null));
+    setErrors({});
+    setStep(1);
+  }
+
   const alreadyPublished = vendor && vendor.published && !justPublished;
+  /* Listings made before submissions went to the database only exist on this device. */
+  const notSubmitted = alreadyPublished && !vendor.remoteId;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -179,8 +229,17 @@ export default function OnboardingPage() {
           <div className="bg-surface-container-lowest rounded-3xl p-6 md:p-8 border border-outline-variant/30 shadow-sm text-center py-10 mb-16">
             <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto mb-4"><Icon name="check" className="text-3xl" /></div>
             <h2 className="font-headline-sm text-headline-sm text-on-surface mb-2">You already have a listing</h2>
-            <p className="font-body-md text-body-md text-on-surface-variant mb-6">{vendor.name} is live. Manage it from your dashboard.</p>
+            <p className="font-body-md text-body-md text-on-surface-variant mb-6">
+              {notSubmitted
+                ? `${vendor.name} is saved on this device but hasn't been sent for review yet. Submit it so it can go live.`
+                : `${vendor.name} is ${vendor.status === 'approved' ? 'live' : 'with our team for review'}. Manage it from your dashboard.`}
+            </p>
             <div className="flex flex-wrap gap-3 justify-center">
+              {notSubmitted && (
+                <button type="button" onClick={reopenForReview} className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-primary text-on-primary font-label-lg text-label-lg font-semibold hover:bg-primary-container shadow-sm transition-colors disabled:opacity-60 disabled:cursor-wait">
+                  Review and submit
+                </button>
+              )}
               <Link href="/dashboard" className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-primary text-on-primary font-label-lg text-label-lg font-semibold hover:bg-primary-container shadow-sm transition-colors">Go to dashboard</Link>
               <button type="button" onClick={() => setJustPublished(true)} className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border border-outline-variant text-on-surface font-label-lg text-label-lg font-semibold hover:border-primary hover:text-primary transition-colors">List another business</button>
             </div>
@@ -188,11 +247,11 @@ export default function OnboardingPage() {
         ) : justPublished ? (
           <div className="bg-surface-container-lowest rounded-3xl p-6 md:p-8 border border-outline-variant/30 shadow-sm text-center py-10 mb-16">
             <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto mb-4"><Icon name="check" className="text-3xl" /></div>
-            <h2 className="font-headline-sm text-headline-sm text-on-surface mb-2">Your business is live</h2>
-            <p className="font-body-md text-body-md text-on-surface-variant mb-6">Your free trial has started. Residents of the societies you chose can now find you.</p>
+            <h2 className="font-headline-sm text-headline-sm text-on-surface mb-2">Submitted for review</h2>
+            <p className="font-body-md text-body-md text-on-surface-variant mb-6">Thanks! Our team will check your listing, usually within a day. Once it&apos;s approved, residents of the societies you chose can find you.</p>
             <div className="flex flex-wrap gap-3 justify-center">
               <Link href="/dashboard" className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-primary text-on-primary font-label-lg text-label-lg font-semibold hover:bg-primary-container shadow-sm transition-colors">Go to dashboard</Link>
-              <Link href="/business/mine" className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border border-outline-variant text-on-surface font-label-lg text-label-lg font-semibold hover:border-primary hover:text-primary transition-colors">View my page</Link>
+              <Link href="/business/mine" className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border border-outline-variant text-on-surface font-label-lg text-label-lg font-semibold hover:border-primary hover:text-primary transition-colors">Preview my page</Link>
             </div>
           </div>
         ) : (
@@ -237,7 +296,7 @@ export default function OnboardingPage() {
                   </div>
                   <div className="flex flex-wrap items-center justify-between gap-3 mt-7 pt-5 border-t border-outline-variant/30">
                     <button type="button" onClick={onBack} className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border border-outline-variant text-on-surface font-label-lg text-label-lg font-semibold hover:border-primary hover:text-primary transition-colors">Back to edit</button>
-                    <button type="button" onClick={onPublish} className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-primary text-on-primary font-label-lg text-label-lg font-semibold hover:bg-primary-container shadow-sm transition-colors">Publish my business</button>
+                    <button type="button" onClick={onPublish} disabled={submitting} className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-primary text-on-primary font-label-lg text-label-lg font-semibold hover:bg-primary-container shadow-sm transition-colors disabled:opacity-60 disabled:cursor-wait">{submitting ? 'Submitting...' : 'Submit for review'}</button>
                   </div>
                 </>
               )}

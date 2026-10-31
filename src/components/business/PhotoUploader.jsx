@@ -21,7 +21,7 @@ export default function PhotoUploader({ v, patch }) {
   const bannerInputRef = useRef(null);
   const photoInputRef = useRef(null);
   const [uploadingBanner, setUploadingBanner] = useState(false);
-  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(0); // photos still uploading
   const c = catOf(v.cat);
   const seed = seedOf(v.id || 'mine');
   const photos = Array.isArray(v.photos) ? v.photos : [];
@@ -55,26 +55,32 @@ export default function PhotoUploader({ v, patch }) {
     patch({ banner: null });
   }
 
+  /* Several photos can be picked at once; anything beyond the remaining slots is skipped with a
+     note. Uploads run one after another, and each finished one appears straight away. */
   async function onPhotoChange(e) {
-    const file = e.target.files?.[0];
+    const picked = Array.from(e.target.files || []);
     e.target.value = '';
-    if (!file || rejectFile(file)) return;
+    if (!picked.length) return;
 
-    if (photos.length >= MAX_PHOTOS) {
-      toast(`You can add up to ${MAX_PHOTOS} photos.`);
-      return;
-    }
+    const images = picked.filter((file) => !rejectFile(file));
+    const room = MAX_PHOTOS - photos.length;
+    const files = images.slice(0, room);
+    if (images.length > room) toast(`You can add up to ${MAX_PHOTOS} photos, so only the first ${room} were added.`);
+    if (!files.length) return;
 
-    setUploadingPhoto(true);
-    try {
-      const publicId = await uploadImage(file);
-      patch({ photos: [...photos, publicId] });
-      toast('Photo added.');
-    } catch (err) {
-      toast(err.message || 'Could not upload that photo. Try again.');
-    } finally {
-      setUploadingPhoto(false);
+    setUploadingPhoto(files.length);
+    const added = [];
+    for (const file of files) {
+      try {
+        added.push(await uploadImage(file));
+        patch({ photos: [...photos, ...added] });
+      } catch (err) {
+        toast(err.message || 'Could not upload a photo. Try again.');
+      }
+      setUploadingPhoto((n) => n - 1);
     }
+    setUploadingPhoto(0);
+    if (added.length) toast(added.length === 1 ? 'Photo added.' : `${added.length} photos added.`);
   }
 
   function removePhoto(publicId) {
@@ -122,16 +128,10 @@ export default function PhotoUploader({ v, patch }) {
       <div>
         <h3 className="font-label-lg text-label-lg font-bold text-on-surface mb-1">Photos</h3>
         <p className="font-body-sm text-body-sm text-on-surface-variant mb-3">
-          {photos.length === 0 ? `Add up to ${MAX_PHOTOS} photos of your work, shop or kitchen.` : `Up to ${MAX_PHOTOS} photos shown on your page.`}
+          Add up to {MAX_PHOTOS} photos of your work, shop or kitchen. <span className="font-semibold text-on-surface">{photos.length} of {MAX_PHOTOS}</span> added.
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {photos.length === 0
-            ? [0, 1, 2].map((n, i) => (
-                <div key={n} className={`relative aspect-square ${BLOBS[i]} overflow-hidden bg-surface-container border-2 border-dashed border-outline-variant flex items-center justify-center text-outline`} aria-hidden="true">
-                  <Icon name="add_photo_alternate" className="text-2xl" />
-                </div>
-              ))
-            : photos.map((publicId, i) => (
+          {photos.map((publicId, i) => (
                 <div key={publicId} className={`relative aspect-square ${BLOBS[i % BLOBS.length]} overflow-hidden bg-surface-container border-2 border-surface-container-lowest`}>
                   <img className="w-full h-full object-cover" src={cloudinaryUrl(publicId, { w: 240, h: 240 })} alt="" loading="lazy" />
                   <button
@@ -148,14 +148,24 @@ export default function PhotoUploader({ v, patch }) {
             <button
               type="button"
               onClick={() => photoInputRef.current?.click()}
-              disabled={uploadingPhoto}
-              className="aspect-square rounded-2xl border-2 border-dashed border-primary/40 text-primary font-label-md text-label-md font-semibold hover:bg-primary-fixed/40 transition-colors disabled:opacity-60 flex flex-col items-center justify-center gap-1.5"
+              disabled={uploadingPhoto > 0}
+              className="aspect-square rounded-2xl border-2 border-dashed border-primary/40 text-primary font-label-md text-label-md font-semibold hover:bg-primary-fixed/40 transition-colors disabled:opacity-60 disabled:cursor-wait flex flex-col items-center justify-center gap-1.5 px-2 text-center"
             >
-              {uploadingPhoto ? <Spinner className="w-5 h-5" /> : 'Add photo'}
+              {uploadingPhoto > 0 ? (
+                <>
+                  <Spinner className="w-5 h-5" />
+                  <span className="font-label-sm text-label-sm">Uploading {uploadingPhoto}...</span>
+                </>
+              ) : (
+                <>
+                  <Icon name="add_photo_alternate" className="text-2xl" />
+                  <span>{photos.length ? 'Add more' : 'Add photos'}</span>
+                </>
+              )}
             </button>
           )}
         </div>
-        <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={onPhotoChange} />
+        <input ref={photoInputRef} type="file" accept="image/*" multiple className="hidden" onChange={onPhotoChange} />
       </div>
     </div>
   );
