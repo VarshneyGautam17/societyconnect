@@ -6,6 +6,7 @@ import { socImg, blobOf } from '@/lib/images';
 import { selectCountForSociety } from '@/store/selectors';
 import { setSociety } from '@/store/slices/societySlice';
 import Icon from '@/components/ui/Icon';
+import SkeletonImage from '@/components/ui/SkeletonImage';
 
 export default function SocietyCard({ society }) {
   const dispatch = useDispatch();
@@ -22,7 +23,7 @@ export default function SocietyCard({ society }) {
       <div>
         <div className="relative w-full aspect-[4/3] mb-3 sm:mb-5 overflow-hidden">
           <div className={`w-full h-full ${blobOf(society.id)} overflow-hidden bg-surface-container border-2 border-surface-container-lowest`}>
-            <img className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src={socImg(society, 640, 440)} alt="" loading="lazy" />
+            <SkeletonImage className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src={socImg(society, 640, 440)} alt="" loading="lazy" />
           </div>
           <span className="absolute bottom-2 left-2 glass px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-label-sm font-label-sm font-bold text-tertiary flex items-center gap-1 shadow-sm">
             <Icon name="circleCheck" className="text-xs" filled />

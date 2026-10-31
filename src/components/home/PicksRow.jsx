@@ -4,6 +4,7 @@ import { catOf } from '@/data/categories';
 import { bizImg, blobOf } from '@/lib/images';
 import Icon from '@/components/ui/Icon';
 import Reveal from '@/components/ui/Reveal';
+import SkeletonImage from '@/components/ui/SkeletonImage';
 
 /* Rank 1-3 get a medal-coloured badge so the ranking reads at a glance -- same treatment as the
    directory page's top-picks panel, kept visually consistent between the two. */
@@ -44,7 +45,7 @@ export default function PicksRow() {
                 >
                   <div className="relative">
                     <div className={`w-full aspect-square ${blobOf(b.id)} overflow-hidden bg-surface-container-high border-2 border-surface-container-lowest`}>
-                      <img className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src={bizImg(b)} alt="" loading="lazy" />
+                      <SkeletonImage className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src={bizImg(b)} alt="" loading="lazy" />
                     </div>
                     <span
                       className={`absolute -top-2 -left-2 w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center font-label-sm text-label-sm font-bold shadow-sm ${

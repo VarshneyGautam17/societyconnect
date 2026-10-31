@@ -3,6 +3,7 @@ import { socShort } from '@/data/societies';
 import { bizImg, blobOf } from '@/lib/images';
 import Icon from '@/components/ui/Icon';
 import RichText from '@/components/ui/RichText';
+import SkeletonImage from '@/components/ui/SkeletonImage';
 
 /** Read-only version of BizCard — used for the onboarding/edit-page "preview as resident" views,
  *  where the save heart and contact buttons shouldn't be wired up to real state yet. */
@@ -13,7 +14,7 @@ export default function PreviewCard({ business }) {
       <div>
         <div className="relative w-full aspect-[4/3] mb-5 overflow-hidden">
           <div className={`w-full h-full ${blobOf(business.id || 'preview')} overflow-hidden bg-surface-container border-2 border-surface-container-lowest`}>
-            <img className="w-full h-full object-cover" src={bizImg(business)} alt="" loading="lazy" />
+            <SkeletonImage className="w-full h-full object-cover" src={bizImg(business)} alt="" loading="lazy" />
           </div>
           <span className="absolute top-2 left-2 glass px-2.5 py-1 rounded-full text-label-sm font-label-sm font-bold flex items-center gap-1 shadow-sm" style={{ color: c.fg }}>
             <Icon name={c.micon} className="text-xs" />

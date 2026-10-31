@@ -8,7 +8,8 @@ import Icon from '@/components/ui/Icon';
  *   - FullScreenGate  the whole page isn't usable yet (first app boot, auth/account gate
  *                     still resolving) -- nothing underneath is meaningful yet, so we cover it.
  *   - Skeleton*       nothing has ever loaded yet, so show the shape of what's coming instead
- *                     of a spinner -- cards, rows, stat tiles. */
+ *                     of a spinner -- cards, rows, stat tiles. Whole-page skeletons built from
+ *                     these live in PageSkeletons.jsx. */
 
 export function Spinner({ className = 'w-4 h-4', tone = 'currentColor' }) {
   return (
@@ -87,26 +88,6 @@ export function ListRowSkeleton({ count = 4 }) {
           </div>
         </div>
       ))}
-    </div>
-  );
-}
-
-/** Full business-detail-page placeholder: banner + title block + a couple of content blocks. */
-export function BusinessPageSkeleton() {
-  return (
-    <div className="max-w-7xl mx-auto px-4 md:px-8 w-full pb-20 md:pb-0" aria-hidden="true">
-      <div className="py-2.5 md:py-5"><Skeleton className="h-4 w-48" /></div>
-      <div className="rounded-2xl md:rounded-3xl border border-outline-variant/30 overflow-hidden mb-3 md:mb-6">
-        <Skeleton className="w-full h-36 md:h-80 rounded-none" />
-        <div className="pt-9 md:pt-14 pb-6 px-4 md:px-6 flex flex-col gap-3">
-          <Skeleton className="h-6 w-2/5" />
-          <Skeleton className="h-4 w-1/3" />
-        </div>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-5">
-        <Skeleton className="h-64 rounded-3xl" />
-        <Skeleton className="h-64 rounded-3xl" />
-      </div>
     </div>
   );
 }

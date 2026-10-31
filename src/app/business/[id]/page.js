@@ -24,7 +24,8 @@ import WhatsAppButton from '@/components/ui/WhatsAppButton';
 import CallButton from '@/components/ui/CallButton';
 import SaveButton from '@/components/ui/SaveButton';
 import EnquiryForm from '@/components/business/EnquiryForm';
-import { BusinessPageSkeleton } from '@/components/ui/Loaders';
+import { BusinessContentSkeleton } from '@/components/ui/PageSkeletons';
+import SkeletonImage from '@/components/ui/SkeletonImage';
 
 const BLOBS = ['blob-shape-1', 'blob-shape-2', 'blob-shape-3', 'blob-shape-4', 'blob-shape-5', 'blob-shape-1'];
 
@@ -88,7 +89,7 @@ export default function BusinessPage() {
     if (!remoteChecked) {
       return (
         <SiteShell active="business">
-          <BusinessPageSkeleton />
+          <BusinessContentSkeleton />
         </SiteShell>
       );
     }
@@ -127,10 +128,16 @@ export default function BusinessPage() {
     }
     toast(type === 'whatsapp' ? 'Demo: this would open WhatsApp. Logged as a contact attempt.' : 'Demo: this would start a call. Logged as a contact attempt.');
   }
+  const contactProps = {
+    phone,
+    canReveal: business.hidePhone !== false && !revealed,
+    onReveal: () => setRevealed(true),
+    onContact
+  };
 
   return (
     <SiteShell active="business">
-      <div className="max-w-7xl mx-auto px-4 md:px-8 w-full pb-20 md:pb-0">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 w-full">
         <nav className="py-2.5 md:py-5 font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5 flex-wrap" aria-label="Breadcrumb">
           <Link href="/" className="hover:text-primary transition-colors">{socShort(business.society)}</Link>
           <span>/</span>
@@ -141,7 +148,7 @@ export default function BusinessPage() {
 
         <section className="bg-surface-container-lowest rounded-2xl md:rounded-3xl border border-outline-variant/30 shadow-sm overflow-hidden mb-3 md:mb-6">
           <div className="relative h-36 md:h-80">
-            <img className="w-full h-full object-cover" src={bizImg(business, 1200, 480)} alt="" loading="lazy" />
+            <SkeletonImage className="w-full h-full object-cover" src={bizImg(business, 1200, 480)} alt="" loading="lazy" />
             <div className="absolute inset-0 bg-gradient-to-t from-on-surface/40 via-transparent to-transparent" />
             <div className="absolute -bottom-7 md:-bottom-10 left-4 md:left-6">
               <MonoTile business={business} className="w-14 h-14 md:w-20 md:h-20 text-xl md:text-3xl rounded-xl md:rounded-2xl border-4 border-surface-container-lowest shadow-lg" />
@@ -165,19 +172,20 @@ export default function BusinessPage() {
                 <span className="flex items-center gap-1.5 text-tertiary font-semibold"><Icon name="clock" className="text-sm" />{hoursLine}</span>
               </div>
             </div>
-            {/* WhatsApp/Call/Save are hidden on mobile -- the sticky bottom bar below covers them
-                there, so repeating them here would just be duplicate, space-eating buttons. */}
-            <div className="hidden md:flex flex-wrap gap-2.5">
-              <WhatsAppButton onClick={() => onContact('whatsapp')} label="WhatsApp" className="px-5 py-3 font-label-lg text-label-lg" />
-              <CallButton onClick={() => onContact('call')} label="Call" className="px-5 py-3 font-label-lg text-label-lg" />
-              <a href="#enquiry" className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-primary text-on-primary font-label-lg text-label-lg font-semibold hover:bg-primary-container shadow-sm transition-colors">Send enquiry</a>
-              <SaveButton saved={saved} onClick={onSave} label="Save" className="px-5 py-3 border border-outline-variant text-on-surface font-label-lg text-label-lg font-semibold hover:border-primary" />
-            </div>
-            <a href="#enquiry" className="md:hidden inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-primary text-on-primary font-label-sm text-label-sm font-semibold">
-              <Icon name="mail" className="text-sm" /><span>Enquire</span>
-            </a>
+            {/* Contact actions live in the "Get in touch" card (ContactCard below), not here --
+                the hero only keeps Save, so the name/meta block isn't crowded by a button row. */}
+            <SaveButton
+              saved={saved}
+              onClick={onSave}
+              label={saved ? 'Saved' : 'Save'}
+              className="px-4 py-2 md:px-5 md:py-2.5 border border-outline-variant text-on-surface font-label-sm md:font-label-md text-label-sm md:text-label-md font-semibold hover:border-primary"
+            />
           </div>
         </section>
+
+        {/* Below lg the aside drops under all the main panels, so the contact card is shown here
+            instead -- right under the hero, where a resident looks for it first. */}
+        <ContactCard {...contactProps} className="lg:hidden mb-3 md:mb-6" />
 
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] gap-3 md:gap-6 pb-8 md:pb-16 items-start">
           <div className="flex flex-col gap-3 md:gap-6">
@@ -209,7 +217,7 @@ export default function BusinessPage() {
               <div className="grid grid-cols-3 gap-2 md:gap-3">
                 {photos.map((p, i) => (
                   <div key={i} className={`aspect-square ${p.blob} overflow-hidden bg-surface-container border-2 border-surface-container-lowest hover:scale-105 transition-transform duration-300`}>
-                    <img className="w-full h-full object-cover" src={p.src} alt="" loading="lazy" />
+                    <SkeletonImage className="w-full h-full object-cover" src={p.src} alt="" loading="lazy" />
                   </div>
                 ))}
               </div>
@@ -240,20 +248,7 @@ export default function BusinessPage() {
           </div>
 
           <aside className="flex flex-col gap-3 md:gap-6">
-            <Panel title="Contact information">
-              <div className="flex flex-col gap-2.5 md:gap-3">
-                <div className="flex justify-between gap-3">
-                  <span className="text-on-surface-variant font-body-sm md:font-body-md text-body-sm md:text-body-md">Phone</span>
-                  <strong className="font-label-md md:font-label-lg text-label-md md:text-label-lg text-on-surface">{phone}</strong>
-                </div>
-                {!revealed && (
-                  <button type="button" onClick={() => setRevealed(true)} className="inline-flex items-center justify-center px-4 py-2 md:py-2.5 rounded-full bg-primary-fixed text-primary font-label-sm md:font-label-md text-label-sm md:text-label-md font-bold hover:bg-primary-fixed-dim transition-colors">
-                    Show number
-                  </button>
-                )}
-                <p className="font-body-sm text-body-sm text-on-surface-variant">Numbers stay hidden until you ask. Tapping Call or WhatsApp records a contact attempt, not a completed call.</p>
-              </div>
-            </Panel>
+            <ContactCard {...contactProps} className="hidden lg:block" />
             <Panel title="Location">
               <div className="h-24 md:h-36 rounded-xl md:rounded-2xl bg-primary-fixed flex items-center justify-center text-primary">
                 <Icon name="pin" className="text-3xl md:text-4xl" />
@@ -266,15 +261,39 @@ export default function BusinessPage() {
           </aside>
         </div>
       </div>
-
-      {/* Mobile-only: the WhatsApp/Call buttons up in the hero scroll out of reach on a long
-          page, so they're repeated here, pinned just above the tab bar -- the same "always
-          reachable" contact bar pattern Zomato/Swiggy use on their listing pages. */}
-      <div className="md:hidden fixed inset-x-0 bottom-14 z-30 glass-strong px-3 py-2 flex items-center gap-2 shadow-[0_-8px_24px_-16px_rgba(15,23,42,0.3)]">
-        <SaveButton saved={saved} onClick={onSave} className="w-11 h-11 flex-none border border-outline-variant/50" />
-        <WhatsAppButton onClick={() => onContact('whatsapp')} label="WhatsApp" className="flex-1 h-11 font-label-md text-label-md" />
-        <CallButton onClick={() => onContact('call')} label="Call" className="flex-1 h-11 font-label-md text-label-md" />
-      </div>
     </SiteShell>
+  );
+}
+
+/** Phone + WhatsApp/Call/Enquire, grouped in one card. Rendered twice by BusinessPage (under the
+ *  hero below lg, top of the aside at lg+) with only one visible at a time. */
+function ContactCard({ phone, canReveal, onReveal, onContact, className = '' }) {
+  return (
+    <Panel title="Get in touch" className={className}>
+      <div className="flex items-center justify-between gap-3 mb-3 md:mb-4">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span className="w-9 h-9 md:w-10 md:h-10 flex-none rounded-full bg-primary-fixed text-primary flex items-center justify-center">
+            <Icon name="phone" className="text-base md:text-lg" />
+          </span>
+          <strong className="font-label-md md:font-label-lg text-label-md md:text-label-lg text-on-surface truncate">{phone}</strong>
+        </div>
+        {canReveal && (
+          <button type="button" onClick={onReveal} className="flex-none px-3 py-1.5 rounded-full bg-primary-fixed text-primary font-label-sm text-label-sm font-bold hover:bg-primary-fixed-dim transition-colors">
+            Show number
+          </button>
+        )}
+      </div>
+      <WhatsAppButton onClick={() => onContact('whatsapp')} label="Chat on WhatsApp" className="w-full h-11 md:h-12 font-label-md md:font-label-lg text-label-md md:text-label-lg" />
+      <div className="grid grid-cols-2 gap-2 mt-2">
+        <CallButton onClick={() => onContact('call')} label="Call" className="h-11 font-label-md text-label-md" />
+        <a
+          href="#enquiry"
+          className="inline-flex items-center justify-center gap-2 h-11 rounded-full border-2 border-outline-variant/60 text-on-surface font-label-md text-label-md font-semibold hover:border-primary hover:text-primary active:scale-[0.97] transition-all"
+        >
+          <Icon name="mail" className="text-lg" /><span>Enquire</span>
+        </a>
+      </div>
+      <p className="font-body-sm text-body-sm text-on-surface-variant mt-3">Numbers stay hidden until you ask. Tapping Call or WhatsApp records a contact attempt.</p>
+    </Panel>
   );
 }

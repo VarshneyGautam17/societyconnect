@@ -15,6 +15,7 @@ import Icon from '@/components/ui/Icon';
 import Select from '@/components/ui/Select';
 import Reveal from '@/components/ui/Reveal';
 import { useReveal } from '@/lib/useReveal';
+import { SiteShellSkeleton, DirectoryContentSkeleton } from '@/components/ui/PageSkeletons';
 
 const PAGE = 12;
 const SOCIETY_OPTIONS = [{ value: 'all', label: 'All societies' }, ...SOCIETIES.map((s) => ({ value: s.id, label: s.name }))];
@@ -191,7 +192,7 @@ function DirectoryContent() {
 
 export default function DirectoryPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<SiteShellSkeleton><DirectoryContentSkeleton /></SiteShellSkeleton>}>
       <DirectoryContent />
     </Suspense>
   );

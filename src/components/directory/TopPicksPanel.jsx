@@ -8,6 +8,7 @@ import { bizImg, blobOf } from '@/lib/images';
 import Chip from '@/components/ui/Chip';
 import Icon from '@/components/ui/Icon';
 import Reveal from '@/components/ui/Reveal';
+import SkeletonImage from '@/components/ui/SkeletonImage';
 
 const TABS = [
   { id: 'all', label: 'All', micon: 'grid_view' },
@@ -62,7 +63,7 @@ export default function TopPicksPanel() {
                   >
                     <div className="relative flex-none">
                       <div className={`w-14 h-14 md:w-16 md:h-16 ${blobOf(b.id)} overflow-hidden bg-surface-container-high border-2 border-surface-container-lowest`}>
-                        <img className="w-full h-full object-cover" src={bizImg(b)} alt="" loading="lazy" />
+                        <SkeletonImage className="w-full h-full object-cover" src={bizImg(b)} alt="" loading="lazy" />
                       </div>
                       <span
                         className={`absolute -top-2 -left-2 w-6 h-6 md:w-7 md:h-7 rounded-full flex items-center justify-center font-label-sm text-label-sm font-bold shadow-sm ${

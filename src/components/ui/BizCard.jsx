@@ -14,6 +14,7 @@ import RichText from '@/components/ui/RichText';
 import WhatsAppButton from '@/components/ui/WhatsAppButton';
 import CallButton from '@/components/ui/CallButton';
 import SaveButton from '@/components/ui/SaveButton';
+import SkeletonImage from '@/components/ui/SkeletonImage';
 
 /** The organic business card used on the homepage, directory and onboarding/edit previews.
  *  Two layouts in one component, switched with Tailwind breakpoints: a compact tap-through
@@ -50,7 +51,7 @@ export default function BizCard({ business }) {
           pointer-events-auto. */}
       <div className="relative z-10 flex xs:hidden gap-3 pointer-events-none">
         <div className={`relative w-24 h-24 flex-none overflow-hidden rounded-xl ${blobOf(business.id)} bg-surface-container border-2 border-surface-container-lowest`}>
-          <img className="w-full h-full object-cover" src={bizImg(business)} alt="" loading="lazy" />
+          <SkeletonImage className="w-full h-full object-cover" src={bizImg(business)} alt="" loading="lazy" />
           {business.verified && (
             <span className="absolute bottom-1 left-1 glass rounded-full p-1 shadow-sm text-tertiary">
               <Icon name="shield" className="text-xs" filled />
@@ -82,7 +83,7 @@ export default function BizCard({ business }) {
       <div className="hidden xs:block">
         <div className="relative w-full aspect-[4/3] mb-5 overflow-hidden">
           <div className={`w-full h-full ${blobOf(business.id)} overflow-hidden bg-surface-container border-2 border-surface-container-lowest`}>
-            <img className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src={bizImg(business)} alt="" loading="lazy" />
+            <SkeletonImage className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src={bizImg(business)} alt="" loading="lazy" />
           </div>
           <SaveButton saved={saved} onClick={onSave} ariaLabel={`Save ${business.name}`} className="absolute z-10 top-2 right-2 h-9 w-9 glass shadow-sm" />
           <span className="absolute top-2 left-2 glass px-2.5 py-1 rounded-full text-label-sm font-label-sm font-bold flex items-center gap-1 shadow-sm" style={{ color: c.fg }}>

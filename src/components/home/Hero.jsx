@@ -5,6 +5,7 @@ import Icon from '@/components/ui/Icon';
 import CountUp from '@/components/ui/CountUp';
 import Select from '@/components/ui/Select';
 import { useReveal } from '@/lib/useReveal';
+import SkeletonImage from '@/components/ui/SkeletonImage';
 
 const SOCIETY_OPTIONS = SOCIETIES.map((s) => ({ value: s.id, label: `${s.name}, ${s.place.split(',')[0]}` }));
 
@@ -103,7 +104,7 @@ export default function Hero({ societyId, onSocietyChange, query, onQueryChange,
             <div className="absolute -bottom-10 -left-10 w-72 h-72 bg-secondary-fixed/40 rounded-full blur-3xl pointer-events-none animate-blob-drift-slow" />
             <div className="relative w-full max-w-md aspect-[4/4.5] blob-shape-1 p-2 bg-gradient-to-tr from-surface-container via-surface-container-lowest to-primary-fixed/40 shadow-2xl transition-all duration-700 hover:scale-[1.01]">
               <div className="w-full h-full blob-shape-1 overflow-hidden relative">
-                <img
+                <SkeletonImage
                   className="w-full h-full object-cover object-center"
                   src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=70&w=960&h=1080"
                   alt="A residential society"
