@@ -9,10 +9,10 @@ import AccessGate from './AccessGate';
  *  never gated. */
 export default function SiteShell({ active, children }) {
   return (
-    <div className="flex flex-col min-h-screen pb-14 md:pb-0">
+    <div className="flex flex-col min-h-screen">
       <Header active={active} />
       <main className="flex-1">{children}</main>
-      <Footer />
+      <Footer tabBarSpace />
       <MobileTabBar active={active} />
       <AccessGate />
     </div>

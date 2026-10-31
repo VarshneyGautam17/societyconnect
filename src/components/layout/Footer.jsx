@@ -1,9 +1,12 @@
 import Link from 'next/link';
 import Icon from '@/components/ui/Icon';
 
-export default function Footer() {
+/** `tabBarSpace`: pages with the fixed MobileTabBar pass this so the room it needs below the last
+ *  footer row is footer-colored padding, not a page-background strip -- the tab bar hides on
+ *  scroll-down, and a strip would then show as an odd empty gap under the footer. */
+export default function Footer({ tabBarSpace = false }) {
   return (
-    <footer className="bg-surface-container border-t border-outline-variant/40 mt-auto">
+    <footer className={`bg-surface-container border-t border-outline-variant/40 mt-auto ${tabBarSpace ? 'pb-14 md:pb-0' : ''}`}>
       <div className="w-full py-6 md:py-12 px-4 md:px-8 max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-5 md:gap-8">
         <div className="max-w-sm">
           <div className="flex items-center gap-2 mb-2.5 md:mb-3">
