@@ -8,7 +8,8 @@ import { hydrateVendor } from '@/store/slices/vendorSlice';
 import { hydrateSaved } from '@/store/slices/savedSlice';
 import { hydrateEvents } from '@/store/slices/eventsSlice';
 import { hydrateEnquiries } from '@/store/slices/enquiriesSlice';
-import { hydrateAccess } from '@/store/slices/accessSlice';
+import { hydrateAccess, lockAccess, unlockAccess } from '@/store/slices/accessSlice';
+import { getResidentSession } from '@/app/access/actions';
 import { storageGet, storageSet } from '@/lib/storage';
 import { ToastProvider } from '@/components/ui/Toast';
 import { FullScreenLoader } from '@/components/ui/Loaders';
@@ -34,7 +35,14 @@ export default function Providers({ children }) {
     store.dispatch(hydrateSaved(storageGet('saved', [])));
     store.dispatch(hydrateEvents(storageGet('events', [])));
     store.dispatch(hydrateEnquiries(storageGet('enquiries', [])));
-    store.dispatch(hydrateAccess(storageGet('access', { phone: null, unlocked: false })));
+    store.dispatch(hydrateAccess(storageGet('access', null)));
+    /* The cached unlock above is just a hint; the httpOnly session cookie is the truth. A
+       network failure leaves the cached state alone rather than locking a signed-in resident out. */
+    if (process.env.NEXT_PUBLIC_ACCESS_GATE_ENABLED === 'true') {
+      getResidentSession()
+        .then((session) => store.dispatch(session ? unlockAccess(session.phone) : lockAccess()))
+        .catch(() => {});
+    }
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time localStorage hydration on mount, same pattern as onboarding/page.js
     setHydrated(true);
 

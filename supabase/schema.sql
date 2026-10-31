@@ -435,3 +435,51 @@ create policy "owners can read their own events"
 create policy "admins can read all events"
   on events for select
   using (is_admin());
+
+-- ---------------------------------------------------------------------------
+-- Resident phone login (WhatsApp OTP) -- see src/app/access/actions.js.
+-- residents: one row per verified mobile number.
+-- resident_otps: pending codes (hashed, short-lived, attempt-capped). Also the
+--   send rate-limit log, so a script can't run up a WhatsApp bill.
+-- resident_sessions: one row per signed-in browser; the httpOnly cookie holds
+--   a random token, only its sha256 is stored here.
+-- RLS is on with no policies at all on purpose: anon/authenticated have zero
+-- access, so these are reachable only through the service-role client inside
+-- the server actions.
+-- ---------------------------------------------------------------------------
+create table if not exists residents (
+  id uuid primary key default gen_random_uuid(),
+  phone text not null unique check (phone ~ '^[0-9]{10}$'),
+  created_at timestamptz not null default now(),
+  last_login_at timestamptz not null default now()
+);
+
+alter table residents enable row level security;
+
+create table if not exists resident_otps (
+  id uuid primary key default gen_random_uuid(),
+  phone text not null check (phone ~ '^[0-9]{10}$'),
+  code_hash text not null,
+  attempts int not null default 0,
+  expires_at timestamptz not null,
+  consumed_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists resident_otps_phone_idx on resident_otps (phone, created_at desc);
+
+alter table resident_otps enable row level security;
+
+create table if not exists resident_sessions (
+  id uuid primary key default gen_random_uuid(),
+  resident_id uuid not null references residents(id) on delete cascade,
+  token_hash text not null unique,
+  user_agent text not null default '',
+  created_at timestamptz not null default now(),
+  last_seen_at timestamptz not null default now(),
+  expires_at timestamptz not null
+);
+
+create index if not exists resident_sessions_resident_idx on resident_sessions (resident_id);
+
+alter table resident_sessions enable row level security;
