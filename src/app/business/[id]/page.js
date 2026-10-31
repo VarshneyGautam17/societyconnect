@@ -6,7 +6,8 @@ import Link from 'next/link';
 import { useDispatch, useSelector } from 'react-redux';
 import { catOf } from '@/data/categories';
 import { socOf, socShort } from '@/data/societies';
-import { bizImg, imgUrl, seedOf } from '@/lib/images';
+import { useSocieties } from '@/lib/societies';
+import { bizImg } from '@/lib/images';
 import { cloudinaryUrl } from '@/lib/cloudinary';
 import { selectBusinessById, selectIsSaved } from '@/store/selectors';
 import { recordEvent } from '@/store/slices/eventsSlice';
@@ -34,8 +35,8 @@ export default function BusinessPage() {
   const dispatch = useDispatch();
   const toast = useToast();
   const localBusiness = useSelector((state) => selectBusinessById(state, id));
-  /* The 20 demo businesses + "mine" live in Redux/localStorage; a real
-     published vendor lives in Supabase and isn't in that store at all, so
+  /* Approved listings (loaded at boot) and "mine" are in Redux; a pending listing or one
+     opened before that load finishes isn't, so
      this is the fallback that makes a real listing (and admin previews of
      pending ones) viewable, and is what lets its view/contact events be
      real rows in Supabase instead of this browser's localStorage. */
@@ -45,6 +46,7 @@ export default function BusinessPage() {
   const isRemote = !localBusiness && !!remoteBusiness;
   const saved = useSelector((state) => (business ? selectIsSaved(state, business.id) : false));
   const [revealed, setRevealed] = useState(false);
+  useSocieties(); // re-render once the database society list loads (socOf/socShort below read it)
 
   useEffect(() => {
     if (localBusiness || !id) return;
@@ -75,15 +77,12 @@ export default function BusinessPage() {
     if (business) document.title = `${business.name} | SocietySpot`;
   }, [business]);
 
-  const photoSeed = business ? seedOf(business.id) : 0;
+  /* Only the vendor's own uploads -- no stand-in photos, which would pass off stock images as
+     their work. The gallery panel is hidden when there are none. */
   const photos = useMemo(() => {
-    if (!business) return [];
-    if (Array.isArray(business.photos) && business.photos.length) {
-      return business.photos.map((publicId, i) => ({ blob: BLOBS[i % BLOBS.length], src: cloudinaryUrl(publicId, { w: 320, h: 320 }) }));
-    }
-    const c = catOf(business.cat);
-    return [0, 1, 2, 3, 4, 5].map((n, i) => ({ blob: BLOBS[i], src: imgUrl(c.images, photoSeed + n * 13, 320, 320) }));
-  }, [business, photoSeed]);
+    if (!business || !Array.isArray(business.photos)) return [];
+    return business.photos.map((publicId, i) => ({ blob: BLOBS[i % BLOBS.length], src: cloudinaryUrl(publicId, { w: 320, h: 320 }) }));
+  }, [business]);
 
   if (!business) {
     if (!remoteChecked) {
@@ -194,7 +193,6 @@ export default function BusinessPage() {
             </Panel>
 
             <Panel title="Products, services and prices">
-              <p className="font-body-sm text-body-sm text-on-surface-variant mb-2">Prices are samples for this mockup.</p>
               {business.items.map((r, i) => (
                 <div key={i} className="flex items-center justify-between gap-4 py-2 md:py-3 border-t border-outline-variant/30">
                   <div>
@@ -213,6 +211,7 @@ export default function BusinessPage() {
               </Panel>
             )}
 
+            {photos.length > 0 && (
             <Panel title="Business photos">
               <div className="grid grid-cols-3 gap-2 md:gap-3">
                 {photos.map((p, i) => (
@@ -222,12 +221,13 @@ export default function BusinessPage() {
                 ))}
               </div>
             </Panel>
+            )}
 
             <Panel title="Service availability">
               <div className="flex flex-wrap gap-1.5 md:gap-2">
-                <span className="px-2.5 py-1.5 md:px-3.5 md:py-2 rounded-full font-label-sm md:font-label-md text-label-sm md:text-label-md font-semibold bg-tertiary-fixed text-tertiary">Serves {socShort(business.society)}</span>
-                <span className="px-2.5 py-1.5 md:px-3.5 md:py-2 rounded-full font-label-sm md:font-label-md text-label-sm md:text-label-md font-semibold bg-primary-fixed text-primary">Free delivery inside the society</span>
-                <span className="px-2.5 py-1.5 md:px-3.5 md:py-2 rounded-full font-label-sm md:font-label-md text-label-sm md:text-label-md font-semibold bg-surface-container-high text-on-surface-variant">Contact before 10 am for same-day orders</span>
+                {[...new Set([business.society, ...(business.served || [])].filter(Boolean))].map((id) => (
+                  <span key={id} className="px-2.5 py-1.5 md:px-3.5 md:py-2 rounded-full font-label-sm md:font-label-md text-label-sm md:text-label-md font-semibold bg-tertiary-fixed text-tertiary">Serves {socShort(id)}</span>
+                ))}
               </div>
             </Panel>
 

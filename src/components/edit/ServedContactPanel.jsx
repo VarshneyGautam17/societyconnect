@@ -1,9 +1,10 @@
-import { SOCIETIES } from '@/data/societies';
+import { useSocieties } from '@/lib/societies';
 import { inputCls } from '@/components/ui/Field';
 import { useToast } from '@/components/ui/Toast';
 
 export default function ServedContactPanel({ v, patch }) {
   const toast = useToast();
+  const societies = useSocieties();
 
   function toggleSociety(id) {
     const i = v.served.indexOf(id);
@@ -34,7 +35,7 @@ export default function ServedContactPanel({ v, patch }) {
       </label>
       <div className="font-label-md text-label-md font-semibold text-on-surface mt-5 mb-2.5">Societies you serve</div>
       <div className="flex flex-wrap gap-2">
-        {SOCIETIES.map((s) => {
+        {societies.map((s) => {
           const on = v.served.includes(s.id);
           return (
             <button

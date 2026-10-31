@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import AdminShell from '@/components/admin/AdminShell';
 
 /* Gates every /admin/* route. Membership in the `admins` table is the only
-   thing that grants access -- see supabase/README.md for how that's granted
+   thing that grants access -- see supabase/README.md for how that is granted
    (by hand, via the SQL Editor; there is no self-service path). */
 export default async function AdminLayout({ children }) {
   const supabase = await createClient();
@@ -11,8 +11,8 @@ export default async function AdminLayout({ children }) {
 
   if (!user) redirect('/admin/login');
 
-  const { data: admin } = await supabase.from('admins').select('user_id').eq('user_id', user.id).maybeSingle();
-  if (!admin) redirect('/admin/login?error=not_admin');
+  const { data: isAdmin } = await supabase.rpc('is_admin');
+  if (isAdmin !== true) redirect('/admin/login?error=not_admin');
 
   return <AdminShell email={user.email}>{children}</AdminShell>;
 }

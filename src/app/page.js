@@ -2,10 +2,12 @@
 
 import { useMemo, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { selectAllBusinesses } from '@/store/selectors';
+import { selectAllBusinesses, selectListingsLoading } from '@/store/selectors';
 import { setSociety } from '@/store/slices/societySlice';
 import { socOf } from '@/data/societies';
+import { useSocieties } from '@/lib/societies';
 import { catOf } from '@/data/categories';
+import { useSocietyLocator } from '@/lib/useSocietyLocator';
 import SiteShell from '@/components/layout/SiteShell';
 import Hero from '@/components/home/Hero';
 import BusinessesSection from '@/components/home/BusinessesSection';
@@ -20,14 +22,21 @@ export default function HomePage() {
   const dispatch = useDispatch();
   const societyId = useSelector((state) => state.society.selectedId);
   const allBusinesses = useSelector(selectAllBusinesses);
+  const loading = useSelector(selectListingsLoading);
+  const societies = useSocieties();
 
   const [query, setQuery] = useState('');
   const [cat, setCat] = useState('all');
   const [shown, setShown] = useState(PAGE);
-  const [locateMsg, setLocateMsg] = useState('Prefer not to share? Just pick your society above.');
+  const { message: locateMsg, locate } = useSocietyLocator('Prefer not to share? Just pick your society above.');
 
-  const soc = socOf(societyId);
-  const inSociety = useMemo(() => allBusinesses.filter((b) => b.society === soc.id), [allBusinesses, soc.id]);
+  /* No society chosen yet (or it no longer exists): show every listing instead of none. */
+  const hasSociety = societies.some((s) => s.id === societyId);
+  const soc = socOf(societyId, societies);
+  const inSociety = useMemo(
+    () => (hasSociety ? allBusinesses.filter((b) => b.society === soc.id || b.served?.includes(soc.id)) : allBusinesses),
+    [allBusinesses, hasSociety, soc.id]
+  );
   const list = useMemo(() => {
     const q = query.trim().toLowerCase();
     return inSociety.filter((b) => {
@@ -50,17 +59,9 @@ export default function HomePage() {
     setCat(id);
     setShown(PAGE);
   }
-  function onLocate() {
-    if (!navigator.geolocation) {
-      setLocateMsg('Location is not available here. Pick your society from the list.');
-      return;
-    }
-    setLocateMsg('Checking your approximate location...');
-    navigator.geolocation.getCurrentPosition(
-      () => setLocateMsg('Location found. Confirm your society in the list to see exact results.'),
-      () => setLocateMsg('Location blocked. No problem, pick your society from the list.'),
-      { timeout: 8000 }
-    );
+  async function onLocate() {
+    await locate();
+    setShown(PAGE);
   }
 
   return (
@@ -73,19 +74,20 @@ export default function HomePage() {
         onSubmit={onSubmit}
         locateMsg={locateMsg}
         onLocate={onLocate}
-        heroSociety={soc.name}
-        heroCount={`${inSociety.length} listed`}
+        heroSociety={hasSociety ? soc.name : 'Not chosen yet'}
+        heroCount={hasSociety ? inSociety.length : null}
       />
       <BusinessesSection
-        societyId={societyId}
+        title={hasSociety ? `Businesses in ${soc.name.replace(' Habitat', '')}` : 'Businesses on SocietySpot'}
+        loading={loading}
         list={list}
         cat={cat}
         onCatChange={onCatChange}
         shown={shown}
         onLoadMore={() => setShown((s) => s + PAGE)}
       />
-      <PicksRow />
-      <OffersSection />
+      <PicksRow businesses={allBusinesses} />
+      <OffersSection businesses={allBusinesses} />
       <HowItWorks />
       <VendorCTA />
     </SiteShell>

@@ -1,14 +1,14 @@
 import Link from 'next/link';
 import { CATEGORIES } from '@/data/categories';
-import { socShort } from '@/data/societies';
 import Chip from '@/components/ui/Chip';
 import BizCard from '@/components/ui/BizCard';
 import Icon from '@/components/ui/Icon';
 import Reveal from '@/components/ui/Reveal';
+import { CardSkeleton } from '@/components/ui/Loaders';
 
 const ALL_CHIP = { id: 'all', short: 'All', micon: 'grid_view' };
 
-export default function BusinessesSection({ societyId, list, cat, onCatChange, shown, onLoadMore }) {
+export default function BusinessesSection({ title, loading, list, cat, onCatChange, shown, onLoadMore }) {
   const chips = [ALL_CHIP, ...CATEGORIES.slice(0, 7)];
   const visible = list.slice(0, shown);
 
@@ -21,9 +21,9 @@ export default function BusinessesSection({ societyId, list, cat, onCatChange, s
               <Icon name="near_me" className="text-sm" />
               <span>Hyperlocal Network</span>
             </div>
-            <h2 className="font-headline-lg text-headline-md md:text-headline-lg text-on-surface tracking-tight">Businesses in {socShort(societyId)}</h2>
+            <h2 className="font-headline-lg text-headline-md md:text-headline-lg text-on-surface tracking-tight">{title}</h2>
             <p className="font-body-sm md:font-body-md text-body-sm md:text-body-md text-on-surface-variant mt-1">
-              Showing {Math.min(shown, list.length)} of {list.length} sample listings
+              {loading ? 'Loading listings...' : `Showing ${Math.min(shown, list.length)} of ${list.length} listings`}
             </p>
           </div>
           <Link href="/directory" className="inline-flex items-center gap-1.5 font-label-md md:font-label-lg text-label-md md:text-label-lg font-bold text-primary hover:text-primary-container transition-colors group">
@@ -46,7 +46,13 @@ export default function BusinessesSection({ societyId, list, cat, onCatChange, s
           ))}
         </div>
 
-        {list.length === 0 && (
+        {loading && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-8" aria-hidden="true">
+            {Array.from({ length: 6 }).map((_, i) => <CardSkeleton key={i} />)}
+          </div>
+        )}
+
+        {!loading && list.length === 0 && (
           <div className="bg-surface-container-lowest border border-dashed border-outline-variant rounded-2xl md:rounded-3xl p-6 md:p-10 text-center">
             <h3 className="font-headline-sm text-headline-sm text-on-surface mb-2">No businesses listed here yet</h3>
             <p className="text-on-surface-variant font-body-md text-body-md mb-5">Know a vendor in your society? Invite them to list their business.</p>

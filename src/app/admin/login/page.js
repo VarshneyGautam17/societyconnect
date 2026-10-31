@@ -1,12 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation';
+import { adminSignIn } from './actions';
 import Icon from '@/components/ui/Icon';
 
+const inputCls = 'min-h-[48px] rounded-2xl border border-outline-variant px-4 font-body-md text-body-md focus:border-primary focus:outline-none';
+
 export default function AdminLoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
-  const [sent, setSent] = useState(false);
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -14,17 +19,20 @@ export default function AdminLoginPage() {
     e.preventDefault();
     setError('');
     setLoading(true);
-    const supabase = createClient();
-    const { error: authError } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=/admin` }
-    });
-    setLoading(false);
-    if (authError) {
-      setError(authError.message);
+    let res;
+    try {
+      res = await adminSignIn(email, password);
+    } catch {
+      res = { error: 'Could not sign in right now. Try again.' };
+    }
+    if (res.error) {
+      setLoading(false);
+      setPassword('');
+      setError(res.error);
       return;
     }
-    setSent(true);
+    router.replace('/admin');
+    router.refresh();
   }
 
   return (
@@ -36,31 +44,48 @@ export default function AdminLoginPage() {
         <h1 className="font-headline-sm text-headline-sm text-on-surface mb-1">Admin sign in</h1>
         <p className="font-body-sm text-body-sm text-on-surface-variant mb-6">Only approved admin accounts can access this area.</p>
 
-        {sent ? (
-          <p className="font-body-md text-body-md text-on-surface">
-            Check <strong>{email}</strong> for a sign-in link. You can close this tab.
-          </p>
-        ) : (
-          <form onSubmit={onSubmit} className="flex flex-col gap-3">
+        <form onSubmit={onSubmit} className="flex flex-col gap-3">
+          <input
+            type="email"
+            required
+            maxLength={254}
+            autoComplete="username"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+            aria-label="Email"
+            className={inputCls}
+          />
+          <div className="relative">
             <input
-              type="email"
+              type={showPassword ? 'text' : 'password'}
               required
-              maxLength={254}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              className="min-h-[48px] rounded-2xl border border-outline-variant px-4 font-body-md text-body-md focus:border-primary focus:outline-none"
+              maxLength={200}
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              aria-label="Password"
+              className={`${inputCls} w-full pr-12`}
             />
-            {error && <span className="font-body-sm text-body-sm text-error">{error}</span>}
             <button
-              type="submit"
-              disabled={loading}
-              className="inline-flex items-center justify-center px-5 py-3 rounded-full bg-primary text-on-primary font-label-lg text-label-lg font-semibold hover:bg-primary-container transition-colors disabled:opacity-60"
+              type="button"
+              onClick={() => setShowPassword((s) => !s)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center text-outline hover:text-on-surface"
             >
-              {loading ? 'Sending...' : 'Send sign-in link'}
+              <Icon name={showPassword ? 'visibility_off' : 'visibility'} className="text-xl" />
             </button>
-          </form>
-        )}
+          </div>
+          {error && <span role="alert" className="font-body-sm text-body-sm text-error">{error}</span>}
+          <button
+            type="submit"
+            disabled={loading}
+            className="inline-flex items-center justify-center px-5 py-3 rounded-full bg-primary text-on-primary font-label-lg text-label-lg font-semibold hover:bg-primary-container transition-colors disabled:opacity-60"
+          >
+            {loading ? 'Signing in...' : 'Sign in'}
+          </button>
+        </form>
       </div>
     </div>
   );

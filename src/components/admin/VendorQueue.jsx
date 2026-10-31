@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { approveBusiness, rejectBusiness } from '@/app/admin/actions';
 import { socOf } from '@/data/societies';
+import { useSocieties } from '@/lib/societies';
 import { catOf } from '@/data/categories';
 import RichText from '@/components/ui/RichText';
 import { useToast } from '@/components/ui/Toast';
@@ -72,6 +73,7 @@ function VendorRow({ business }) {
 }
 
 export default function VendorQueue({ businesses }) {
+  useSocieties(); // re-render once the database society list loads (socOf below reads it)
   if (!businesses.length) {
     return (
       <div className="bg-surface-container-lowest border border-dashed border-outline-variant rounded-3xl p-10 text-center">

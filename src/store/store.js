@@ -5,6 +5,7 @@ import savedReducer from './slices/savedSlice';
 import eventsReducer from './slices/eventsSlice';
 import enquiriesReducer from './slices/enquiriesSlice';
 import accessReducer from './slices/accessSlice';
+import listingsReducer from './slices/listingsSlice';
 
 export function makeStore() {
   return configureStore({
@@ -14,7 +15,8 @@ export function makeStore() {
       saved: savedReducer,
       events: eventsReducer,
       enquiries: enquiriesReducer,
-      access: accessReducer
+      access: accessReducer,
+      listings: listingsReducer
     }
   });
 }

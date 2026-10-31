@@ -24,7 +24,7 @@ const PANEL_MAX_WIDTH = 352;
  *  painted under later glass/animated sections (each of those is its own stacking context, so no
  *  z-index escapes them). Placement flips above the trigger when there's more room there, clamps
  *  horizontally to the viewport, caps height to the space available, and follows scroll/resize. */
-export default function Select({ value, onChange, options, ariaLabel, triggerClassName = '', panelClassName = '', align = 'left' }) {
+export default function Select({ value, onChange, options, ariaLabel, placeholder = '', triggerClassName = '', panelClassName = '', align = 'left' }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -189,7 +189,7 @@ export default function Select({ value, onChange, options, ariaLabel, triggerCla
       >
         <span className="flex items-center gap-1.5 flex-1 min-w-0">
           {selected?.icon && <Icon name={selected.icon} className="text-base text-outline flex-none" />}
-          <span className="truncate">{selected?.label}</span>
+          <span className="truncate">{selected?.label ?? placeholder}</span>
         </span>
         <Icon name="expand_more" className={`text-base text-outline flex-none transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
       </button>

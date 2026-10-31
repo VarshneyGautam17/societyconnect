@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useSelector } from 'react-redux';
-import { socShort, socOf } from '@/data/societies';
+import { socLabel } from '@/data/societies';
+import { useSocieties } from '@/lib/societies';
 import Icon from '@/components/ui/Icon';
 import { useHideOnScroll } from '@/lib/useHideOnScroll';
 
@@ -21,7 +22,7 @@ export default function Header({ active, minimal = false }) {
   const societyId = useSelector((state) => state.society.selectedId);
   const vendorLink = vendor && vendor.published ? '/dashboard' : '/onboarding';
   const vendorLabel = vendor && vendor.published ? 'My dashboard' : 'List your business';
-  const society = socOf(societyId);
+  const societies = useSocieties();
 
   const brand = (
     <Link href="/" className="flex items-center gap-1.5 md:gap-2 group flex-none">
@@ -57,7 +58,7 @@ export default function Header({ active, minimal = false }) {
             className="hidden xl:flex items-center gap-1.5 px-3 py-1 bg-surface-container-low border border-outline-variant/40 rounded-full text-on-surface hover:border-primary transition-colors max-w-[220px]"
           >
             <Icon name="pin" className="text-primary text-base flex-none" />
-            <span className="font-label-md text-label-md font-semibold truncate">{socShort(societyId)}, {society.place.split(',')[0]}</span>
+            <span className="font-label-md text-label-md font-semibold truncate">{socLabel(societyId, societies)}</span>
           </Link>
         </div>
 

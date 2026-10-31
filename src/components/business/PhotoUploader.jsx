@@ -94,7 +94,7 @@ export default function PhotoUploader({ v, patch }) {
             loading="lazy"
           />
           {uploadingBanner && <Overlay label="Uploading..." />}
-          {!v.banner && !uploadingBanner && <span className="absolute bottom-2 left-2 font-label-sm text-label-sm font-bold text-white bg-on-surface/60 px-2.5 py-1 rounded-full">Sample banner</span>}
+          {!v.banner && !uploadingBanner && <span className="absolute bottom-2 left-2 font-label-sm text-label-sm font-bold text-white bg-on-surface/60 px-2.5 py-1 rounded-full">Default cover</span>}
           <div className="absolute top-2 right-2 flex gap-2">
             {v.banner && (
               <button
@@ -122,13 +122,13 @@ export default function PhotoUploader({ v, patch }) {
       <div>
         <h3 className="font-label-lg text-label-lg font-bold text-on-surface mb-1">Photos</h3>
         <p className="font-body-sm text-body-sm text-on-surface-variant mb-3">
-          {photos.length === 0 ? `Add up to ${MAX_PHOTOS} photos of your work, shop or kitchen. Showing sample photos until you add your own.` : `Up to ${MAX_PHOTOS} photos shown on your page.`}
+          {photos.length === 0 ? `Add up to ${MAX_PHOTOS} photos of your work, shop or kitchen.` : `Up to ${MAX_PHOTOS} photos shown on your page.`}
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {photos.length === 0
             ? [0, 1, 2].map((n, i) => (
-                <div key={n} className={`relative aspect-square ${BLOBS[i]} overflow-hidden bg-surface-container border-2 border-surface-container-lowest`}>
-                  <img className="w-full h-full object-cover" src={imgUrl(c.images, seed + n * 13, 240, 240)} alt="" loading="lazy" />
+                <div key={n} className={`relative aspect-square ${BLOBS[i]} overflow-hidden bg-surface-container border-2 border-dashed border-outline-variant flex items-center justify-center text-outline`} aria-hidden="true">
+                  <Icon name="add_photo_alternate" className="text-2xl" />
                 </div>
               ))
             : photos.map((publicId, i) => (

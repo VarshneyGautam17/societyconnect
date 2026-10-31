@@ -12,6 +12,8 @@ import { hydrateEnquiries } from '@/store/slices/enquiriesSlice';
 import { hydrateAccess, lockAccess, unlockAccess } from '@/store/slices/accessSlice';
 import { getResidentSession } from '@/app/access/actions';
 import { storageGet, storageSet } from '@/lib/storage';
+import { loadSocieties, primeSocieties } from '@/lib/societies';
+import { loadListings } from '@/lib/listings';
 import { ToastProvider } from '@/components/ui/Toast';
 import { PageSkeletonForPath } from '@/components/ui/PageSkeletons';
 
@@ -30,9 +32,22 @@ export default function Providers({ children }) {
 
   useEffect(() => {
     /* Hydrate from localStorage once, on mount (client only). */
+    primeSocieties();
+    loadListings(store.dispatch);
+    /* A society saved on this device that no longer exists (e.g. one of the old demo
+       societies) is dropped, so the visitor gets to choose -- or auto-detect -- a real one. */
+    loadSocieties().then((list) => {
+      const { selectedId } = store.getState().society;
+      if (selectedId && !list.some((s) => s.id === selectedId)) {
+        store.dispatch(hydrateSociety({ selectedId: null, source: 'default', recent: [] }));
+      }
+    });
+    const storedSociety = storageGet('society', null);
     store.dispatch(hydrateSociety({
-      selectedId: storageGet('society', 'prestige'),
-      recent: storageGet('recent', [])
+      selectedId: storedSociety || null,
+      recent: storageGet('recent', []),
+      /* Anyone with a society saved from before `source` existed chose it themselves. */
+      source: storageGet('societySource', storedSociety ? 'manual' : 'default')
     }));
     store.dispatch(hydrateVendor(storageGet('vendor', null)));
     store.dispatch(hydrateSaved(storageGet('saved', [])));
@@ -53,6 +68,7 @@ export default function Providers({ children }) {
     const unsubscribe = store.subscribe(() => {
       const state = store.getState();
       storageSet('society', state.society.selectedId);
+      storageSet('societySource', state.society.source);
       storageSet('recent', state.society.recent);
       storageSet('vendor', state.vendor.current);
       storageSet('saved', state.saved.ids);

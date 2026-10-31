@@ -1,9 +1,10 @@
 import { catOf, SOCIETY_IMAGES } from '@/data/categories';
 import { cloudinaryUrl } from '@/lib/cloudinary';
 
-/* Dummy photos for the mockup, picked from a hand-curated, visually-checked list of real Unsplash
-   photos per category (see CATEGORIES / SOCIETY_IMAGES) — not a live keyword search, so there's
-   nothing to go down. A given seed always resolves to the same photo in the pool. */
+/* Generic cover images, used only where a business or society has no photo of its own: a
+   hand-curated list of Unsplash photos per category (see CATEGORIES / SOCIETY_IMAGES) -- not a
+   live keyword search, so there's nothing to go down. A given seed always resolves to the same
+   photo in the pool. Never shown as a business's own gallery photos. */
 export function seedOf(id) {
   const s = String(id);
   let h = 0;

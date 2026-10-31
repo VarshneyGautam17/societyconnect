@@ -4,11 +4,11 @@ import { Suspense, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import Link from 'next/link';
-import { SOCIETIES } from '@/data/societies';
+import { useSocieties } from '@/lib/societies';
 import { CATEGORIES, catOf } from '@/data/categories';
-import { selectAllBusinesses, selectIsSaved } from '@/store/selectors';
+import { selectAllBusinesses, selectIsSaved, selectListingsLoading } from '@/store/selectors';
+import { CardSkeleton } from '@/components/ui/Loaders';
 import SiteShell from '@/components/layout/SiteShell';
-import TopPicksPanel from '@/components/directory/TopPicksPanel';
 import Chip from '@/components/ui/Chip';
 import BizCard from '@/components/ui/BizCard';
 import Icon from '@/components/ui/Icon';
@@ -18,17 +18,18 @@ import { useReveal } from '@/lib/useReveal';
 import { SiteShellSkeleton, DirectoryContentSkeleton } from '@/components/ui/PageSkeletons';
 
 const PAGE = 12;
-const SOCIETY_OPTIONS = [{ value: 'all', label: 'All societies' }, ...SOCIETIES.map((s) => ({ value: s.id, label: s.name }))];
 const SORT_OPTIONS = [
   { value: 'newest', label: 'Newest', icon: 'schedule' },
-  { value: 'az', label: 'A to Z', icon: 'sort_by_alpha' },
-  { value: 'views', label: 'Most viewed', icon: 'trending_up' }
+  { value: 'az', label: 'A to Z', icon: 'sort_by_alpha' }
 ];
 
 function DirectoryContent() {
   const params = useSearchParams();
   const allBusinesses = useSelector(selectAllBusinesses);
+  const loading = useSelector(selectListingsLoading);
   const savedIds = useSelector((state) => state.saved.ids);
+  const societies = useSocieties();
+  const societyOptions = useMemo(() => [{ value: 'all', label: 'All societies' }, ...societies.map((s) => ({ value: s.id, label: s.name }))], [societies]);
 
   const [cat, setCat] = useState(params.get('cat') || 'all');
   const [q, setQ] = useState(params.get('q') || '');
@@ -42,7 +43,7 @@ function DirectoryContent() {
   const list = useMemo(() => {
     let result = allBusinesses.filter((b) => {
       if (cat !== 'all' && b.cat !== cat) return false;
-      if (soc !== 'all' && b.society !== soc) return false;
+      if (soc !== 'all' && b.society !== soc && !b.served?.includes(soc)) return false;
       if (verifiedOnly && !b.verified) return false;
       if (offersOnly && !b.offer) return false;
       if (savedOnly && !savedIds.includes(b.id)) return false;
@@ -51,7 +52,6 @@ function DirectoryContent() {
       return true;
     });
     if (sort === 'az') result = [...result].sort((a, b) => a.name.localeCompare(b.name));
-    if (sort === 'views') result = [...result].sort((a, b) => (a.rank || 99) - (b.rank || 99));
     return result;
   }, [allBusinesses, cat, soc, verifiedOnly, offersOnly, savedOnly, q, sort, savedIds]);
 
@@ -97,7 +97,7 @@ function DirectoryContent() {
                 ariaLabel="Society"
                 value={soc}
                 onChange={(v) => { setSoc(v); setShown(PAGE); }}
-                options={SOCIETY_OPTIONS}
+                options={societyOptions}
                 triggerClassName="inline-flex items-center gap-1.5 bg-transparent font-label-md text-label-md font-semibold text-on-surface focus:outline-none py-1 max-w-[150px] sm:max-w-[220px]"
               />
             </div>
@@ -105,8 +105,6 @@ function DirectoryContent() {
           </form>
         </div>
       </section>
-
-      <TopPicksPanel />
 
       <section className="py-4 md:py-6 bg-surface" id="categories">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
@@ -141,7 +139,12 @@ function DirectoryContent() {
               />
             </div>
           </Reveal>
-          <p className="font-body-sm text-body-sm text-on-surface-variant mb-3 md:mb-6">Showing {Math.min(shown, list.length)} of {list.length} businesses</p>
+          <p className="font-body-sm text-body-sm text-on-surface-variant mb-3 md:mb-6">{loading ? 'Loading listings...' : `Showing ${Math.min(shown, list.length)} of ${list.length} businesses`}</p>
+          {loading && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-8" aria-hidden="true">
+              {Array.from({ length: 6 }).map((_, i) => <CardSkeleton key={i} />)}
+            </div>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-8">
             {visible.map((b, i) => (
               <Reveal key={b.id} delay={(i % 6) * 60}>
@@ -149,7 +152,16 @@ function DirectoryContent() {
               </Reveal>
             ))}
           </div>
-          {list.length === 0 && (
+          {!loading && allBusinesses.length === 0 && (
+            <Reveal as="div" className="bg-surface-container-lowest border border-dashed border-outline-variant rounded-2xl md:rounded-3xl p-6 md:p-10 text-center">
+              <h3 className="font-headline-sm text-headline-sm text-on-surface mb-2">No businesses listed yet</h3>
+              <p className="text-on-surface-variant font-body-md text-body-md mb-5">Run a business from your society? Be the first to list it.</p>
+              <Link href="/onboarding" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-on-primary hover:bg-primary-container font-label-md md:font-label-lg text-label-md md:text-label-lg font-bold transition-colors">
+                List your business
+              </Link>
+            </Reveal>
+          )}
+          {!loading && allBusinesses.length > 0 && list.length === 0 && (
             <Reveal as="div" className="bg-surface-container-lowest border border-dashed border-outline-variant rounded-2xl md:rounded-3xl p-6 md:p-10 text-center">
               <h3 className="font-headline-sm text-headline-sm text-on-surface mb-2">No businesses match</h3>
               <p className="text-on-surface-variant font-body-md text-body-md mb-5">Try another category or clear a filter.</p>

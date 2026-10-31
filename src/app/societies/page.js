@@ -2,38 +2,29 @@
 
 import { useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { SOCIETIES, socOf } from '@/data/societies';
+import Link from 'next/link';
+import { socOf } from '@/data/societies';
+import { useSocieties } from '@/lib/societies';
 import SiteShell from '@/components/layout/SiteShell';
 import SocietyCard from '@/components/societies/SocietyCard';
 import Icon from '@/components/ui/Icon';
+import { useSocietyLocator } from '@/lib/useSocietyLocator';
 
 export default function SocietiesPage() {
   const [q, setQ] = useState('');
-  const [msg, setMsg] = useState('Location blocked? No problem, searching by name works the same way.');
+  const { message: msg, locate: onLocate } = useSocietyLocator('Location blocked? No problem, searching by name works the same way.');
   const recent = useSelector((state) => state.society.recent);
+  const societies = useSocieties();
 
   const list = useMemo(() => {
     const needle = q.trim().toLowerCase();
-    if (!needle) return SOCIETIES;
-    return SOCIETIES.filter((s) => (s.name + ' ' + s.place).toLowerCase().includes(needle));
-  }, [q]);
+    if (!needle) return societies;
+    return societies.filter((s) => (s.name + ' ' + s.place).toLowerCase().includes(needle));
+  }, [q, societies]);
 
   function onSubmit(e) {
     e.preventDefault();
   }
-  function onLocate() {
-    if (!navigator.geolocation) {
-      setMsg('Location is not available here. Search by name instead.');
-      return;
-    }
-    setMsg('Checking your approximate location...');
-    navigator.geolocation.getCurrentPosition(
-      () => setMsg('Location found. Choose the society closest to you below.'),
-      () => setMsg('Location blocked. Use the search box to find your society by name.'),
-      { timeout: 8000 }
-    );
-  }
-
   return (
     <SiteShell active="societies">
       <section className="relative overflow-hidden border-b border-outline-variant/30 py-6 md:py-12">
@@ -72,7 +63,8 @@ export default function SocietiesPage() {
             <h2 className="font-headline-sm text-label-lg md:text-headline-sm text-on-surface mb-2.5 md:mb-4">Recently viewed</h2>
             <div className="flex flex-wrap gap-1.5 md:gap-2">
               {recent.map((id) => {
-                const s = socOf(id);
+                const s = socOf(id, societies);
+                if (!s.place) return null;
                 return (
                   <span key={id} className="inline-flex items-center min-h-[32px] md:min-h-[44px] px-3 md:px-4 rounded-full bg-surface-container-lowest border border-outline-variant/40 font-label-sm md:font-label-md text-label-sm md:text-label-md font-medium text-on-surface">
                     {s.name.replace(' Habitat', '')}, {s.place.split(',')[0]}
@@ -88,8 +80,8 @@ export default function SocietiesPage() {
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 mb-4 md:mb-8">
             <div>
-              <h2 className="font-headline-lg text-headline-md md:text-headline-lg text-on-surface tracking-tight">Popular societies</h2>
-              <p className="font-body-sm md:font-body-md text-body-sm md:text-body-md text-on-surface-variant mt-1">Sample listings for this mockup</p>
+              <h2 className="font-headline-lg text-headline-md md:text-headline-lg text-on-surface tracking-tight">Societies on SocietySpot</h2>
+              <p className="font-body-sm md:font-body-md text-body-sm md:text-body-md text-on-surface-variant mt-1">Added as businesses from each society join</p>
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-8">
@@ -97,8 +89,18 @@ export default function SocietiesPage() {
           </div>
           {list.length === 0 && (
             <div className="bg-surface-container-lowest border border-dashed border-outline-variant rounded-2xl md:rounded-3xl p-6 md:p-10 text-center">
-              <h3 className="font-headline-sm text-headline-sm text-on-surface mb-2">No society found</h3>
-              <p className="text-on-surface-variant font-body-md text-body-md">Try a different name or locality.</p>
+              {societies.length ? (
+                <>
+                  <h3 className="font-headline-sm text-headline-sm text-on-surface mb-2">No society found</h3>
+                  <p className="text-on-surface-variant font-body-md text-body-md">Try a different name or locality.</p>
+                </>
+              ) : (
+                <>
+                  <h3 className="font-headline-sm text-headline-sm text-on-surface mb-2">No societies yet</h3>
+                  <p className="text-on-surface-variant font-body-md text-body-md mb-5">A society appears here as soon as a business from it lists on SocietySpot.</p>
+                  <Link href="/onboarding" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-on-primary hover:bg-primary-container font-label-md md:font-label-lg text-label-md md:text-label-lg font-bold transition-colors">List your business</Link>
+                </>
+              )}
             </div>
           )}
         </div>

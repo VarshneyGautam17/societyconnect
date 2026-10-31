@@ -2,6 +2,7 @@ import Header from './Header';
 import Footer from './Footer';
 import MobileTabBar from './MobileTabBar';
 import AccessGate from './AccessGate';
+import SocietyAutoDetect from './SocietyAutoDetect';
 
 /** Shared chrome for the resident-facing pages (home, societies, directory, business detail).
  *  AccessGate renders on top of all of these until a visitor enters a mobile number -- it's
@@ -15,6 +16,7 @@ export default function SiteShell({ active, children }) {
       <Footer tabBarSpace />
       <MobileTabBar active={active} />
       <AccessGate />
+      <SocietyAutoDetect />
     </div>
   );
 }

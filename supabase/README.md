@@ -1,25 +1,32 @@
 # Supabase setup
 
-Run once, in order, in the Supabase dashboard's **SQL Editor** (New query -> paste -> Run):
+Run `schema.sql` once in the Supabase dashboard's **SQL Editor** (New query -> paste -> Run):
+tables, RLS policies, the approval-workflow trigger. There is no seed data -- every table
+starts empty and fills with real vendors, societies and residents.
 
-1. `schema.sql` -- tables, RLS policies, the approval-workflow trigger.
-2. `seed.sql` -- optional, the 20 sample businesses so the directory isn't empty on day one.
+## Admin sign-in
 
-## Making yourself an admin
+`/admin/login` takes an email and password, checked on the server by Supabase Auth
+(src/app/admin/login/actions.js) -- the password is stored only in Supabase, hashed. A correct
+password isn't enough on its own: the account must also be in the `admins` table, otherwise
+the session is dropped. There's deliberately no "sign up as admin" flow.
 
-There's deliberately no "sign up as admin" flow -- admin access is only ever granted by hand,
-from the SQL Editor (which runs as the Postgres owner and bypasses RLS, so this works even
-though the `admins` table has no public insert policy at all).
+### Adding an admin
 
-1. Sign in to the app once through the normal vendor auth flow (email) so a row exists in
-   `auth.users` for your email.
+1. Supabase dashboard -> **Authentication -> Users -> Add user -> Create new user**: enter the
+   email and password, tick **Auto Confirm User**.
 2. In the SQL Editor:
 
    ```sql
    insert into admins (user_id)
-   select id from auth.users where email = 'you@example.com';
+   select id from auth.users where email = 'admin@example.com';
    ```
 
-3. You can now sign in at `/admin`.
+### Changing an admin's password
 
-To remove an admin, `delete from admins where user_id = (select id from auth.users where email = '...');`.
+Authentication -> Users -> click the user -> **Reset password** (emails a link), or ask the
+developer to set it with the service-role key.
+
+### Removing an admin
+
+`delete from admins where user_id = (select id from auth.users where email = '...');`

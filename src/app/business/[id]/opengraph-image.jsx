@@ -35,12 +35,11 @@ export default async function Image({ params }) {
 
   const name = business?.name || 'SocietySpot';
   const categoryName = business?.cat?.name || '';
-  const societyLine = business ? `${business.area} · ${business.society.name}` : 'Trusted local businesses';
+  const societyLine = business ? [business.area, business.society.name].filter(Boolean).join(' · ') : 'Trusted local businesses';
   const imageUrl = business?.imageUrl;
-  const isTopPick = business?.rank && business.rank <= 10;
 
   const manropeBoldText =
-    'SocietySpot' + categoryName + (isTopPick ? `Top ${business.rank} pick this month` : '') + (business?.verified ? 'Verified' : '');
+    'SocietySpot' + categoryName + (business?.verified ? 'Verified' : '');
 
   /* Google Fonts is a live network call at request time -- if it's slow or unreachable, a
      broken/missing share poster is worse than one rendered in next/og's own bundled fallback
@@ -144,13 +143,8 @@ export default async function Image({ params }) {
 
         {/* Bottom content block */}
         <div style={{ position: 'absolute', left: 24, right: 24, bottom: 22, display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {(isTopPick || business?.verified) && (
+          {business?.verified && (
             <div style={{ display: 'flex', gap: 6 }}>
-              {isTopPick && (
-                <div style={{ display: 'flex', alignItems: 'center', padding: '4px 9px', borderRadius: 999, backgroundColor: BRASS, color: BRASS_TEXT, fontSize: 10, fontWeight: 700 }}>
-                  Top {business.rank} pick this month
-                </div>
-              )}
               {business?.verified && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 9px', borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.16)', color: IVORY, fontSize: 10, fontWeight: 700 }}>
                   {/* A plain coloured dot instead of a "✓" character -- a Unicode glyph the

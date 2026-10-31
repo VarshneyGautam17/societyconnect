@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { BUSINESSES, OFFERS_VALID } from '@/data/businesses';
 import { catOf } from '@/data/categories';
 import { socShort } from '@/data/societies';
 import Icon from '@/components/ui/Icon';
@@ -11,8 +10,10 @@ const THEMES = [
   { from: 'from-tertiary-fixed', to: 'to-surface-container-lowest', border: 'border-tertiary-fixed', blob: 'bg-tertiary-fixed/50', chip: 'bg-tertiary-fixed text-on-tertiary-fixed-variant', text: 'text-on-tertiary-fixed-variant', sub: 'text-on-tertiary-fixed-variant/75', divider: 'border-tertiary-fixed/70', btn: 'bg-tertiary hover:bg-tertiary-container' }
 ];
 
-export default function OffersSection() {
-  const offers = BUSINESSES.filter((b) => b.offer).slice(0, 3);
+/** Real offers from listings; hidden when no business has one. */
+export default function OffersSection({ businesses }) {
+  const offers = businesses.filter((b) => b.offer).slice(0, 3);
+  if (!offers.length) return null;
   return (
     <section className="py-8 md:py-16 bg-surface">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
@@ -36,13 +37,15 @@ export default function OffersSection() {
                 <div>
                   <div className="flex items-center justify-between mb-3 md:mb-4">
                     <span className={`px-2.5 py-0.5 md:px-3 md:py-1 rounded-full ${t.chip} font-label-sm text-label-sm font-bold`}>{c.short}</span>
-                    <span className={`font-label-sm text-label-sm font-semibold flex items-center gap-1 ${t.sub}`}>
-                      <Icon name="clock" className="text-xs" />
-                      <span>{OFFERS_VALID[i % 3]}</span>
-                    </span>
+                    {b.offerValid && (
+                      <span className={`font-label-sm text-label-sm font-semibold flex items-center gap-1 min-w-0 ${t.sub}`}>
+                        <Icon name="clock" className="text-xs flex-none" />
+                        <span className="truncate">{b.offerValid}</span>
+                      </span>
+                    )}
                   </div>
                   <h3 className={`font-headline-md text-label-lg md:text-headline-md ${t.text} font-bold mb-1.5 md:mb-2 line-clamp-2`}>{b.offer}</h3>
-                  <p className={`font-body-sm text-body-sm ${t.sub} mb-4 md:mb-6 truncate`}>{b.name} &middot; {b.area}, {socShort(b.society)}</p>
+                  <p className={`font-body-sm text-body-sm ${t.sub} mb-4 md:mb-6 truncate`}>{b.name}{b.area ? ` · ${b.area}` : ''}, {socShort(b.society)}</p>
                 </div>
                 <div className={`pt-3 md:pt-4 border-t ${t.divider} flex items-center justify-between gap-3`}>
                   <span className="font-label-sm md:font-label-md text-label-sm md:text-label-md text-on-surface-variant truncate flex-1 min-w-0">{c.name}</span>

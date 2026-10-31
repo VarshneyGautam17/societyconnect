@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { defaultVendor } from '@/data/businesses';
+import Link from 'next/link';
+import { emptyVendor } from '@/data/businesses';
 import { setVendor } from '@/store/slices/vendorSlice';
 import { useToast } from '@/components/ui/Toast';
 import PreviewCard from '@/components/ui/PreviewCard';
@@ -19,7 +20,7 @@ export default function EditPage() {
   const toast = useToast();
   const storedVendor = useSelector((state) => state.vendor.current);
 
-  const [v, setV] = useState(() => (storedVendor ? JSON.parse(JSON.stringify(storedVendor)) : defaultVendor()));
+  const [v, setV] = useState(() => (storedVendor ? JSON.parse(JSON.stringify(storedVendor)) : emptyVendor()));
   const [dirty, setDirty] = useState(false);
 
   useEffect(() => {
@@ -42,7 +43,7 @@ export default function EditPage() {
     if (!v.phone?.trim()) { toast('Add a phone number.'); return; }
     const items = v.items.filter((r) => r[0].trim());
     if (!items.length) { toast('Add at least one product or service.'); return; }
-    const published = { ...v, items, society: v.served[0] || v.society, published: true };
+    const published = { ...v, items, society: v.society || v.served[0], published: true };
     setV(published);
     dispatch(setVendor(published));
     setDirty(false);
@@ -59,6 +60,20 @@ export default function EditPage() {
   }
 
   const previewVendor = { ...v, id: 'preview', society: v.served[0] || v.society, verified: false };
+
+
+  /* Nothing to edit until the vendor has listed a business (onboarding creates it). */
+  if (!storedVendor) {
+    return (
+      <main className="min-h-screen bg-background flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-surface-container-lowest rounded-3xl p-8 border border-outline-variant/30 shadow-sm text-center">
+          <h1 className="font-headline-sm text-headline-sm text-on-surface mb-2">No business listed yet</h1>
+          <p className="font-body-md text-body-md text-on-surface-variant mb-6">List your business first, then you can edit its page here.</p>
+          <Link href="/onboarding" className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-primary text-on-primary font-label-lg text-label-lg font-semibold hover:bg-primary-container shadow-sm transition-colors">List your business</Link>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-on-surface">

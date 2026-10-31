@@ -4,6 +4,7 @@ import { useMemo, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { setBusinessEnabled, deleteBusinessPermanently } from '@/app/admin/actions';
 import { socOf } from '@/data/societies';
+import { useSocieties } from '@/lib/societies';
 import { catOf } from '@/data/categories';
 import { downloadCsv } from '@/lib/exportCsv';
 import { stripRichText } from '@/lib/richText';
@@ -96,6 +97,7 @@ function Row({ business }) {
 }
 
 export default function BusinessesTable({ businesses }) {
+  useSocieties(); // re-render once the database society list loads (socOf below reads it)
   const [q, setQ] = useState('');
   const [status, setStatus] = useState('all');
 

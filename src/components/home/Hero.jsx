@@ -1,15 +1,16 @@
 'use client';
 
-import { SOCIETIES } from '@/data/societies';
+import { useMemo } from 'react';
+import { useSocieties } from '@/lib/societies';
 import Icon from '@/components/ui/Icon';
-import CountUp from '@/components/ui/CountUp';
 import Select from '@/components/ui/Select';
 import { useReveal } from '@/lib/useReveal';
 import SkeletonImage from '@/components/ui/SkeletonImage';
 
-const SOCIETY_OPTIONS = SOCIETIES.map((s) => ({ value: s.id, label: `${s.name}, ${s.place.split(',')[0]}` }));
 
 export default function Hero({ societyId, onSocietyChange, query, onQueryChange, onSubmit, locateMsg, onLocate, heroSociety, heroCount }) {
+  const societies = useSocieties();
+  const societyOptions = useMemo(() => societies.map((s) => ({ value: s.id, label: s.place ? `${s.name}, ${s.place.split(',')[0]}` : s.name })), [societies]);
   const badgeReveal = useReveal(0);
   const headlineReveal = useReveal(90);
   const subheadReveal = useReveal(160);
@@ -51,7 +52,8 @@ export default function Hero({ societyId, onSocietyChange, query, onQueryChange,
                   ariaLabel="Society"
                   value={societyId}
                   onChange={onSocietyChange}
-                  options={SOCIETY_OPTIONS}
+                  options={societyOptions}
+                  placeholder={societyOptions.length ? 'Choose your society' : 'No societies yet'}
                   triggerClassName="inline-flex items-center gap-1.5 bg-transparent font-label-md text-label-md font-semibold text-on-surface focus:outline-none py-1 max-w-[150px] sm:max-w-[220px]"
                 />
               </div>
@@ -117,21 +119,12 @@ export default function Hero({ societyId, onSocietyChange, query, onQueryChange,
                 <div>
                   <p className="font-label-sm text-label-sm text-on-surface-variant font-medium">Selected society</p>
                   <p className="font-label-md text-label-md font-bold text-on-surface">{heroSociety}</p>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-tertiary" />
-                    <span className="font-label-sm text-label-sm text-tertiary font-semibold">{heroCount} listed</span>
-                  </div>
-                </div>
-              </div>
-              <div className="absolute -bottom-6 -right-3 glass shadow-xl rounded-full px-4 py-2.5 flex items-center gap-3">
-                <div className="flex -space-x-2 overflow-hidden">
-                  <span className="inline-block h-7 w-7 rounded-full ring-2 ring-surface-container-lowest bg-primary-fixed flex items-center justify-center text-primary font-bold text-xs">RK</span>
-                  <span className="inline-block h-7 w-7 rounded-full ring-2 ring-surface-container-lowest bg-secondary-fixed flex items-center justify-center text-secondary font-bold text-xs">AM</span>
-                  <span className="inline-block h-7 w-7 rounded-full ring-2 ring-surface-container-lowest bg-tertiary-fixed flex items-center justify-center text-tertiary font-bold text-xs">PS</span>
-                </div>
-                <div className="text-left">
-                  <span className="font-label-md text-label-md font-bold text-on-surface block leading-tight"><CountUp value={250} suffix="+" /> Neighbors</span>
-                  <span className="font-label-sm text-label-sm text-on-surface-variant block">Active this week</span>
+                  {heroCount !== null && (
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-tertiary" />
+                      <span className="font-label-sm text-label-sm text-tertiary font-semibold">{heroCount} listed</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

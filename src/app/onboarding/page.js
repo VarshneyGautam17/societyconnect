@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Link from 'next/link';
-import { defaultVendor } from '@/data/businesses';
+import { emptyVendor } from '@/data/businesses';
 import { publishVendor } from '@/store/slices/vendorSlice';
+import { upsertSociety } from '@/data/societies';
+import { resolveVendorSociety } from '@/app/onboarding/actions';
 import { storageGet, storageSet } from '@/lib/storage';
 import { useToast } from '@/components/ui/Toast';
 import Header from '@/components/layout/Header';
@@ -15,21 +17,24 @@ import WizardHead from '@/components/onboarding/WizardHead';
 import WizardFoot from '@/components/onboarding/WizardFoot';
 import StepAccount from '@/components/onboarding/steps/StepAccount';
 import StepBasics from '@/components/onboarding/steps/StepBasics';
-import StepServe from '@/components/onboarding/steps/StepServe';
+import StepServe, { addressKey } from '@/components/onboarding/steps/StepServe';
 import StepOfferings from '@/components/onboarding/steps/StepOfferings';
 import Icon from '@/components/ui/Icon';
 
 const STEP_COUNT = 5;
-const EMPTY_DRAFT = { phone: '', otpSent: false, otp: '', name: '', slug: '', slugCustom: false, cat: '', desc: '', whatsapp: '', call: '', same: true, served: [], area: '', items: [['', '', '']], offer: '', banner: null, photos: [] };
+const EMPTY_DRAFT = { phone: '', otpSent: false, otp: '', name: '', slug: '', slugCustom: false, cat: '', desc: '', whatsapp: '', call: '', same: true, served: [], area: '', societyName: '', street: '', city: '', pincode: '', society: null, items: [['', '', '']], offer: '', banner: null, photos: [] };
 
 function buildVendor(draft) {
-  const vendor = defaultVendor();
+  const vendor = emptyVendor();
   vendor.name = draft.name;
   vendor.slug = draft.slug || '';
   vendor.cat = draft.cat;
   vendor.desc = draft.desc || 'New local business.';
-  vendor.society = draft.served[0] || 'prestige';
-  vendor.served = draft.served.slice();
+  /* `society` is the vendor's own, verified society (see resolveVendorSociety); '' until the
+     address step has been checked, which the preview shows as "Your society". */
+  const own = draft.society?.id || '';
+  vendor.society = own;
+  vendor.served = [...new Set([own, ...draft.served].filter(Boolean))];
   vendor.area = draft.area || 'In the society';
   const num = draft.same ? draft.whatsapp : draft.call;
   vendor.phone = '+91 ' + num.replace(/^(\d{2})\d{3}(\d{3})(\d{2})$/, '$1XXX XXX$3');
@@ -53,7 +58,10 @@ function validateStep(step, draft) {
     if (!draft.cat) errors.cat = 'Please choose a category.';
     if (!/^\d{10}$/.test(draft.whatsapp)) errors.whatsapp = 'Enter a 10-digit WhatsApp number.';
   } else if (step === 2) {
-    if (!draft.served.length) errors.served = 'Choose at least one society.';
+    if (draft.societyName.trim().length < 2) errors.societyName = 'Enter your society name.';
+    if (draft.street.trim().length < 3) errors.street = 'Enter the street or locality.';
+    if (draft.city.trim().length < 2) errors.city = 'Enter your city.';
+    if (!/^[1-9]\d{5}$/.test(draft.pincode)) errors.pincode = 'Enter a valid 6-digit PIN code.';
   } else if (step === 3) {
     if (!draft.items.some((r) => r[0].trim())) errors.items = 'Add at least one item or service.';
   }
@@ -69,6 +77,7 @@ export default function OnboardingPage() {
   const [draft, setDraft] = useState(EMPTY_DRAFT);
   const [errors, setErrors] = useState({});
   const [justPublished, setJustPublished] = useState(false);
+  const [checking, setChecking] = useState(false);
 
   useEffect(() => {
     /* localStorage only exists in the browser, so this one-time hydration has to happen post-mount
@@ -79,10 +88,14 @@ export default function OnboardingPage() {
     if (saved) setDraft({ ...EMPTY_DRAFT, ...saved });
   }, []);
 
+  /* Functional update: verifyAddress() patches after an await, by which point `draft` in its
+     closure may be missing whatever the vendor typed meanwhile. */
   function patch(partial) {
-    const next = { ...draft, ...partial };
-    setDraft(next);
-    storageSet('draft', next);
+    setDraft((prev) => {
+      const next = { ...prev, ...partial };
+      storageSet('draft', next);
+      return next;
+    });
   }
 
   function onBack() {
@@ -93,8 +106,34 @@ export default function OnboardingPage() {
     storageSet('draft', draft);
     toast('Saved. You can continue later on this device.');
   }
-  function onSubmit(e) {
+  /* The address step only moves on once its address is found on the map (geocoded on the
+     server, which also saves the society with its coordinates). An unchanged, already-verified
+     address isn't checked twice. */
+  async function verifyAddress() {
+    const key = addressKey(draft);
+    if (draft.society?.key === key) return true;
+    setChecking(true);
+    setErrors({});
+    let res;
+    try {
+      res = await resolveVendorSociety({ name: draft.societyName, street: draft.street, city: draft.city, pincode: draft.pincode });
+    } catch {
+      res = { error: 'Could not check your address right now. Please try again.' };
+    }
+    setChecking(false);
+    if (res.error) {
+      setErrors({ [res.field || 'address']: res.error });
+      patch({ society: null });
+      return false;
+    }
+    upsertSociety(res.society);
+    patch({ society: { ...res.society, key } });
+    return true;
+  }
+
+  async function onSubmit(e) {
     e.preventDefault();
+    if (checking) return;
     if (step === 0 && draft.otpSent) {
       if (!/^\d{4}$/.test(draft.otp || '')) { setErrors({ otp: 'Enter the 4-digit code.' }); return; }
       setErrors({});
@@ -107,11 +146,17 @@ export default function OnboardingPage() {
       patch({ otpSent: true });
       return;
     }
+    if (step === 2 && !(await verifyAddress())) return;
     setErrors({});
     setStep((s) => s + 1);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   function onPublish() {
+    if (draft.society?.key !== addressKey(draft)) {
+      setStep(2);
+      setErrors({ address: 'Please confirm your society address before publishing.' });
+      return;
+    }
     const built = buildVendor(draft);
     dispatch(publishVendor(built));
     storageSet('draft', null);
@@ -172,10 +217,11 @@ export default function OnboardingPage() {
                   <WizardHead step={step} total={STEP_COUNT} />
                   {step === 0 && <StepAccount draft={draft} patch={patch} errors={errors} />}
                   {step === 1 && <StepBasics draft={draft} patch={patch} errors={errors} />}
-                  {step === 2 && <StepServe draft={draft} patch={patch} errors={errors} />}
+                  {step === 2 && <StepServe draft={draft} patch={patch} errors={errors} checking={checking} />}
                   {step === 3 && <StepOfferings draft={draft} patch={patch} errors={errors} />}
                   <WizardFoot
-                    nextLabel={step === 0 ? (draft.otpSent ? 'Verify and continue' : 'Send code') : step === 3 ? 'Preview my page' : 'Continue'}
+                    nextLabel={checking ? 'Checking address...' : step === 0 ? (draft.otpSent ? 'Verify and continue' : 'Send code') : step === 3 ? 'Preview my page' : 'Continue'}
+                    busy={checking}
                     hideBack={step === 0}
                     onBack={onBack}
                     onSaveLater={onSaveLater}

@@ -3,9 +3,9 @@
 --
 -- Scope: businesses (vendor listings, with an admin approval lifecycle),
 -- enquiries (resident -> vendor messages), events (view/contact tracking),
--- admins (who can access /admin). Societies and categories stay as static
--- data in the app (src/data/societies.js, src/data/categories.js) -- small,
--- fixed lists, not worth a table at this scale.
+-- admins (who can access /admin), societies (added by vendors during
+-- onboarding, geocoded from their address). Categories stay as static data in
+-- the app (src/data/categories.js) -- a small, fixed list, not worth a table.
 --
 -- "saved" stays client-side (localStorage) -- it's an anonymous per-device
 -- resident preference, so it doesn't need an authenticated backend table.
@@ -22,15 +22,58 @@ create table if not exists admins (
 
 alter table admins enable row level security;
 
--- An admin can see who else is an admin; nobody else can read this table at all.
-create policy "admins can read the admin list"
-  on admins for select
-  using (exists (select 1 from admins a where a.user_id = auth.uid()));
-
 create or replace function is_admin()
 returns boolean as $$
   select exists (select 1 from admins where user_id = auth.uid());
 $$ language sql stable security definer set search_path = public;
+
+-- An admin can see who else is an admin; nobody else can read this table at all. Goes through
+-- is_admin() (security definer, so it reads `admins` without RLS) -- a policy that queried
+-- `admins` directly would re-trigger itself and fail with "infinite recursion detected".
+drop policy if exists "admins can read the admin list" on admins;
+create policy "admins can read the admin list"
+  on admins for select
+  using (is_admin());
+
+-- ---------------------------------------------------------------------------
+-- societies -- the residential societies businesses serve. Starts empty;
+-- vendors add them during onboarding: their society address
+-- is verified with Geoapify geocoding on the server and the society saved with
+-- its coordinates (src/app/onboarding/actions.js). Visitors' location is
+-- matched against lat/lng to pick their nearest society.
+--
+-- Anyone can read; nobody can write through the public API (no insert/update
+-- policies) -- new rows only come from that server action, which uses the
+-- service-role key after the address check passes.
+-- ---------------------------------------------------------------------------
+create table if not exists societies (
+  id text primary key check (id ~ '^[a-z0-9]+(-[a-z0-9]+)*$' and char_length(id) <= 70),
+  name text not null check (char_length(name) between 2 and 120),
+  -- Short "Area, City" label shown under the name.
+  place text not null default '' check (char_length(place) <= 160),
+  street text not null default '' check (char_length(street) <= 160),
+  city text not null default '' check (char_length(city) <= 80),
+  pincode text not null default '' check (pincode = '' or pincode ~ '^[1-9][0-9]{5}$'),
+  formatted_address text not null default '' check (char_length(formatted_address) <= 300),
+  lat double precision not null check (lat between -90 and 90),
+  lng double precision not null check (lng between -180 and 180),
+  -- How precise lat/lng are: 'society' (the society itself was found), 'street'
+  -- (its street/locality was), or 'manual' (entered by hand).
+  geo_level text not null default 'manual' check (geo_level in ('society', 'street', 'manual')),
+  bg text not null default '#E0E7FF' check (bg ~ '^#[0-9A-Fa-f]{6}$'),
+  fg text not null default '#4338CA' check (fg ~ '^#[0-9A-Fa-f]{6}$'),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists societies_lat_lng_idx on societies (lat, lng);
+
+alter table societies enable row level security;
+
+drop policy if exists "anyone can read societies" on societies;
+create policy "anyone can read societies"
+  on societies for select
+  using (true);
+
 
 -- ---------------------------------------------------------------------------
 -- businesses
@@ -272,24 +315,38 @@ begin
 end;
 $$ language plpgsql immutable;
 
--- cat/society: must be one of the static ids in src/data/categories.js / societies.js.
+-- cat: must be one of the static ids in src/data/categories.js.
 alter table businesses drop constraint if exists businesses_cat_check;
 alter table businesses add constraint businesses_cat_check
   check (cat in ('food', 'edu', 'beauty', 'fashion', 'grocery', 'home', 'fitness', 'other'));
 
+-- society: must be a row in `societies`.
 alter table businesses drop constraint if exists businesses_society_check;
-alter table businesses add constraint businesses_society_check
-  check (society in ('prestige', 'purva', 'mantri', 'hiranandani', 'magarpatta', 'dlf', 'lodha', 'brigade'));
+alter table businesses drop constraint if exists businesses_society_fkey;
+alter table businesses add constraint businesses_society_fkey
+  foreign key (society) references societies (id) on update cascade;
 
--- served: every element must be a known society id; capped at the total number of societies
--- (8) so it can't be inflated with repeats -- array_length is null for an empty array in
--- Postgres, hence the "is null or" branch.
+-- served: capped so it can't be inflated with thousands of entries -- array_length is null for
+-- an empty array in Postgres, hence the "is null or" branch. That every element is a real
+-- society is checked by the trigger below (a CHECK constraint can't query another table).
 alter table businesses drop constraint if exists businesses_served_check;
 alter table businesses add constraint businesses_served_check
-  check (
-    served <@ array['prestige', 'purva', 'mantri', 'hiranandani', 'magarpatta', 'dlf', 'lodha', 'brigade']::text[]
-    and (array_length(served, 1) is null or array_length(served, 1) <= 8)
-  );
+  check (array_length(served, 1) is null or array_length(served, 1) <= 50);
+
+create or replace function check_business_served()
+returns trigger as $$
+begin
+  if exists (select 1 from unnest(new.served) as s(id) where not exists (select 1 from societies where societies.id = s.id)) then
+    raise exception 'served contains an unknown society id' using errcode = 'check_violation';
+  end if;
+  return new;
+end;
+$$ language plpgsql;
+
+drop trigger if exists businesses_check_served on businesses;
+create trigger businesses_check_served
+  before insert or update of served on businesses
+  for each row execute function check_business_served();
 
 alter table businesses drop constraint if exists businesses_area_check;
 alter table businesses add constraint businesses_area_check check (char_length(area) <= 120);
