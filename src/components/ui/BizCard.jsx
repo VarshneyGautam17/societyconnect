@@ -9,12 +9,24 @@ import { toggleSaved } from '@/store/slices/savedSlice';
 import { recordEvent } from '@/store/slices/eventsSlice';
 import { selectIsSaved } from '@/store/selectors';
 import { useToast } from '@/components/ui/Toast';
+import { recordContact } from '@/app/business/actions';
+import { isUuid } from '@/lib/slugify';
 import Icon from '@/components/ui/Icon';
 import RichText from '@/components/ui/RichText';
 import WhatsAppButton from '@/components/ui/WhatsAppButton';
 import CallButton from '@/components/ui/CallButton';
 import SaveButton from '@/components/ui/SaveButton';
 import SkeletonImage from '@/components/ui/SkeletonImage';
+
+function waLink(whatsapp, businessName) {
+  const digits = String(whatsapp || '').replace(/\D/g, '').slice(-10);
+  if (!digits) return null;
+  return `https://wa.me/91${digits}?text=${encodeURIComponent(`Hi, I found ${businessName} on SocietySpot.`)}`;
+}
+function telLink(phone) {
+  const digits = String(phone || '').replace(/\D/g, '').slice(-10);
+  return digits ? `tel:+91${digits}` : null;
+}
 
 /** The organic business card used on the homepage, directory and onboarding/edit previews.
  *  Two layouts in one component, switched with Tailwind breakpoints: a compact tap-through
@@ -31,8 +43,17 @@ export default function BizCard({ business }) {
     toast(saved ? 'Removed from saved' : 'Saved. Find it under Saved.');
   }
   function onContact(type) {
-    dispatch(recordEvent({ type, id: business.id }));
-    toast(type === 'whatsapp' ? 'Demo: this would open WhatsApp. Logged as a contact attempt.' : 'Demo: this would start a call. Logged as a contact attempt.');
+    if (isUuid(business.id)) recordContact(business.id, type);
+    else dispatch(recordEvent({ type, id: business.id }));
+    if (type === 'whatsapp') {
+      const link = waLink(business.whatsapp, business.name);
+      if (link) window.open(link, '_blank', 'noopener,noreferrer');
+      else toast('This vendor has no WhatsApp number on file.');
+    } else {
+      const link = telLink(business.phone || business.whatsapp);
+      if (link) window.location.href = link;
+      else toast('This vendor has no phone number on file.');
+    }
   }
 
   return (

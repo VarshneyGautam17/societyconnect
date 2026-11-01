@@ -483,14 +483,27 @@ create policy "admins can read all enquiries"
   using (is_admin());
 
 -- ---------------------------------------------------------------------------
--- events (profile view / WhatsApp tap / call tap -- dashboard analytics)
+-- events (profile view / phone reveal / WhatsApp tap / call tap -- dashboard
+-- analytics, and what triggers a vendor WhatsApp alert -- see
+-- src/app/business/actions.js, src/lib/whatsapp.js). visitor_phone is the
+-- resident's own verified number (from their WhatsApp-login session, see
+-- supabase/schema.sql's "Resident phone login" section below) when known,
+-- '' otherwise (gate disabled, or a page view with no contact action).
 -- ---------------------------------------------------------------------------
 create table if not exists events (
   id uuid primary key default gen_random_uuid(),
   business_id uuid not null references businesses(id) on delete cascade,
-  type text not null check (type in ('view', 'whatsapp', 'call', 'enquiry')),
+  type text not null check (type in ('view', 'reveal', 'whatsapp', 'call', 'enquiry')),
+  visitor_phone text not null default '' check (visitor_phone = '' or visitor_phone ~ '^[0-9]{10}$'),
   created_at timestamptz not null default now()
 );
+
+-- Idempotent for databases where this table predates reveal-tracking/visitor_phone.
+alter table events add column if not exists visitor_phone text not null default '';
+alter table events drop constraint if exists events_visitor_phone_check;
+alter table events add constraint events_visitor_phone_check check (visitor_phone = '' or visitor_phone ~ '^[0-9]{10}$');
+alter table events drop constraint if exists events_type_check;
+alter table events add constraint events_type_check check (type in ('view', 'reveal', 'whatsapp', 'call', 'enquiry'));
 
 create index if not exists events_business_created_idx on events (business_id, created_at desc);
 

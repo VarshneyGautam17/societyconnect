@@ -5,6 +5,7 @@ import { useDispatch } from 'react-redux';
 import { addEnquiry } from '@/store/slices/enquiriesSlice';
 import { recordEvent } from '@/store/slices/eventsSlice';
 import { createClient } from '@/lib/supabase/client';
+import { notifyVendorEnquiry } from '@/app/business/actions';
 import { useToast } from '@/components/ui/Toast';
 import { Spinner } from '@/components/ui/Loaders';
 
@@ -43,6 +44,7 @@ export default function EnquiryForm({ businessId, isRemote = false }) {
           return;
         }
         supabase.from('events').insert({ business_id: businessId, type: 'enquiry' });
+        notifyVendorEnquiry(businessId, trimmedName, trimmedMsg);
       } else {
         dispatch(addEnquiry({ biz: businessId, who: trimmedName, msg: trimmedMsg, t: Date.now() }));
         dispatch(recordEvent({ type: 'enquiry', id: businessId }));

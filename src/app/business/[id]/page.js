@@ -13,6 +13,7 @@ import { selectBusinessById, selectIsSaved } from '@/store/selectors';
 import { recordEvent } from '@/store/slices/eventsSlice';
 import { toggleSaved } from '@/store/slices/savedSlice';
 import { createClient } from '@/lib/supabase/client';
+import { recordContact } from '@/app/business/actions';
 import { dbRowToFormVendor } from '@/lib/businessMapper';
 import { isUuid } from '@/lib/slugify';
 import { useToast } from '@/components/ui/Toast';
@@ -29,6 +30,16 @@ import { BusinessContentSkeleton } from '@/components/ui/PageSkeletons';
 import SkeletonImage from '@/components/ui/SkeletonImage';
 
 const BLOBS = ['blob-shape-1', 'blob-shape-2', 'blob-shape-3', 'blob-shape-4', 'blob-shape-5', 'blob-shape-1'];
+
+function waLink(whatsapp, businessName) {
+  const digits = String(whatsapp || '').replace(/\D/g, '').slice(-10);
+  if (!digits) return null;
+  return `https://wa.me/91${digits}?text=${encodeURIComponent(`Hi, I found ${businessName} on SocietySpot.`)}`;
+}
+function telLink(phone) {
+  const digits = String(phone || '').replace(/\D/g, '').slice(-10);
+  return digits ? `tel:+91${digits}` : null;
+}
 
 export default function BusinessPage() {
   const { id } = useParams();
@@ -121,16 +132,29 @@ export default function BusinessPage() {
   }
   function onContact(type) {
     if (isRemote) {
-      createClient().from('events').insert({ business_id: business.id, type });
+      recordContact(business.id, type);
     } else {
       dispatch(recordEvent({ type, id: business.id }));
     }
-    toast(type === 'whatsapp' ? 'Demo: this would open WhatsApp. Logged as a contact attempt.' : 'Demo: this would start a call. Logged as a contact attempt.');
+    if (type === 'whatsapp') {
+      const link = waLink(business.whatsapp, business.name);
+      if (link) window.open(link, '_blank', 'noopener,noreferrer');
+      else toast('This vendor has no WhatsApp number on file.');
+    } else {
+      const link = telLink(business.phone || business.whatsapp);
+      if (link) window.location.href = link;
+      else toast('This vendor has no phone number on file.');
+    }
+  }
+  function onReveal() {
+    setRevealed(true);
+    if (isRemote) recordContact(business.id, 'reveal');
+    else dispatch(recordEvent({ type: 'reveal', id: business.id }));
   }
   const contactProps = {
     phone,
     canReveal: business.hidePhone !== false && !revealed,
-    onReveal: () => setRevealed(true),
+    onReveal,
     onContact
   };
 
