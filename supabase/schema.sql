@@ -206,40 +206,48 @@ create trigger businesses_protect_review_fields
 alter table businesses enable row level security;
 
 -- Anyone (including anonymous residents) can read approved listings.
+drop policy if exists "public can read approved businesses" on businesses;
 create policy "public can read approved businesses"
   on businesses for select
   using (status = 'approved');
 
 -- A signed-in vendor can always read their own listing, whatever its status.
+drop policy if exists "owners can read their own business" on businesses;
 create policy "owners can read their own business"
   on businesses for select
   using (auth.uid() = owner_id);
 
 -- A signed-in vendor can create exactly one listing for themselves (status
 -- is forced to 'pending' by the trigger above regardless of what they send).
+drop policy if exists "owners can insert their own business" on businesses;
 create policy "owners can insert their own business"
   on businesses for insert
   with check (auth.uid() = owner_id);
 
+drop policy if exists "owners can update their own business" on businesses;
 create policy "owners can update their own business"
   on businesses for update
   using (auth.uid() = owner_id)
   with check (auth.uid() = owner_id);
 
+drop policy if exists "owners can delete their own business" on businesses;
 create policy "owners can delete their own business"
   on businesses for delete
   using (auth.uid() = owner_id);
 
 -- Admins can read, edit, and permanently delete any listing, approved or not.
+drop policy if exists "admins can read all businesses" on businesses;
 create policy "admins can read all businesses"
   on businesses for select
   using (is_admin());
 
+drop policy if exists "admins can update any business" on businesses;
 create policy "admins can update any business"
   on businesses for update
   using (is_admin())
   with check (is_admin());
 
+drop policy if exists "admins can delete any business" on businesses;
 create policy "admins can delete any business"
   on businesses for delete
   using (is_admin());
@@ -431,6 +439,7 @@ alter table enquiries enable row level security;
 -- Any visitor can submit an enquiry to an approved business. Column checks
 -- above cap length; add a captcha (e.g. Cloudflare Turnstile) in front of
 -- this once traffic is real -- an open insert policy is spammable by design.
+drop policy if exists "anyone can submit an enquiry" on enquiries;
 create policy "anyone can submit an enquiry"
   on enquiries for insert
   with check (
@@ -456,16 +465,19 @@ create trigger enquiries_rate_limit
   for each row execute function limit_enquiry_rate();
 
 -- Only the business owner can read or update (e.g. mark "Replied") their own enquiries.
+drop policy if exists "owners can read their own enquiries" on enquiries;
 create policy "owners can read their own enquiries"
   on enquiries for select
   using (exists (select 1 from businesses b where b.id = business_id and b.owner_id = auth.uid()));
 
+drop policy if exists "owners can update their own enquiries" on enquiries;
 create policy "owners can update their own enquiries"
   on enquiries for update
   using (exists (select 1 from businesses b where b.id = business_id and b.owner_id = auth.uid()))
   with check (exists (select 1 from businesses b where b.id = business_id and b.owner_id = auth.uid()));
 
 -- Admins can read every enquiry, for the data export.
+drop policy if exists "admins can read all enquiries" on enquiries;
 create policy "admins can read all enquiries"
   on enquiries for select
   using (is_admin());
@@ -484,6 +496,7 @@ create index if not exists events_business_created_idx on events (business_id, c
 
 alter table events enable row level security;
 
+drop policy if exists "anyone can record an event" on events;
 create policy "anyone can record an event"
   on events for insert
   with check (
@@ -507,10 +520,12 @@ create trigger events_rate_limit
   before insert on events
   for each row execute function limit_event_rate();
 
+drop policy if exists "owners can read their own events" on events;
 create policy "owners can read their own events"
   on events for select
   using (exists (select 1 from businesses b where b.id = business_id and b.owner_id = auth.uid()));
 
+drop policy if exists "admins can read all events" on events;
 create policy "admins can read all events"
   on events for select
   using (is_admin());
