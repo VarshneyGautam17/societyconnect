@@ -8,17 +8,38 @@ import { useSocieties } from '@/lib/societies';
 import { catOf } from '@/data/categories';
 import RichText from '@/components/ui/RichText';
 import { useToast } from '@/components/ui/Toast';
+import Icon from '@/components/ui/Icon';
 
-function VendorRow({ business }) {
+const numCls = 'w-full min-h-[40px] rounded-xl border px-3 font-body-sm text-body-sm focus:border-primary focus:outline-none disabled:bg-surface-container disabled:text-on-surface-variant';
+
+function parseCoord(value, min, max) {
+  const n = Number(value);
+  return Number.isFinite(n) && n >= min && n <= max ? n : null;
+}
+
+function VendorRow({ business, society }) {
   const toast = useToast();
   const [pending, startTransition] = useTransition();
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState('');
 
+  const coordsSet = Number.isFinite(society?.lat) && Number.isFinite(society?.lng);
+  const [lat, setLat] = useState(coordsSet ? String(society.lat) : '');
+  const [lng, setLng] = useState(coordsSet ? String(society.lng) : '');
+  const mapsQuery = encodeURIComponent([business.name, society?.street, society?.city, society?.pincode].filter(Boolean).join(', '));
+
   function onApprove() {
+    let coords;
+    if (!coordsSet) {
+      const latNum = parseCoord(lat, -90, 90);
+      const lngNum = parseCoord(lng, -180, 180);
+      if (latNum === null) { toast('Enter a valid latitude (-90 to 90) for this society first.'); return; }
+      if (lngNum === null) { toast('Enter a valid longitude (-180 to 180) for this society first.'); return; }
+      coords = { lat: latNum, lng: lngNum };
+    }
     startTransition(async () => {
       try {
-        await approveBusiness(business.id);
+        await approveBusiness(business.id, coords);
         toast(`${business.name} approved -- now live.`);
       } catch (err) {
         toast(err.message || 'Could not approve that listing.');
@@ -56,6 +77,30 @@ function VendorRow({ business }) {
           <button type="button" onClick={() => setRejecting((r) => !r)} disabled={pending} className="inline-flex items-center px-4 py-2 rounded-full border border-outline-variant text-on-surface font-label-md text-label-md font-semibold hover:border-error hover:text-error transition-colors disabled:opacity-60">Reject</button>
         </div>
       </div>
+      <div className="mt-3 pt-3 border-t border-outline-variant/30">
+        {coordsSet ? (
+          <p className="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5">
+            <Icon name="circleCheck" className="text-base text-emerald-600" />
+            {socOf(business.society).name} is already on the map at {society.lat.toFixed(5)}, {society.lng.toFixed(5)}.
+          </p>
+        ) : (
+          <div className="flex flex-wrap items-end gap-2.5">
+            <div className="font-body-sm text-body-sm text-on-surface-variant w-full mb-0.5">
+              New society -- set {socOf(business.society).name}&apos;s coordinates before approving (one-time, saved for every business there after).{' '}
+              <a href={`https://www.google.com/maps/search/?api=1&query=${mapsQuery}`} target="_blank" rel="noopener noreferrer" className="text-primary font-semibold hover:underline">Find it on Google Maps</a>
+              , right-click the pin and copy the lat/lng shown.
+            </div>
+            <label className="flex flex-col gap-1 w-36">
+              <span className="font-label-sm text-label-sm font-semibold text-on-surface-variant">Latitude</span>
+              <input value={lat} onChange={(e) => setLat(e.target.value)} placeholder="e.g. 12.9352" inputMode="decimal" className={`${numCls} border-outline-variant`} />
+            </label>
+            <label className="flex flex-col gap-1 w-36">
+              <span className="font-label-sm text-label-sm font-semibold text-on-surface-variant">Longitude</span>
+              <input value={lng} onChange={(e) => setLng(e.target.value)} placeholder="e.g. 77.6146" inputMode="decimal" className={`${numCls} border-outline-variant`} />
+            </label>
+          </div>
+        )}
+      </div>
       {rejecting && (
         <div className="mt-3 pt-3 border-t border-outline-variant/30 flex flex-wrap items-center gap-2">
           <input
@@ -72,7 +117,7 @@ function VendorRow({ business }) {
   );
 }
 
-export default function VendorQueue({ businesses }) {
+export default function VendorQueue({ businesses, societiesById }) {
   useSocieties(); // re-render once the database society list loads (socOf below reads it)
   if (!businesses.length) {
     return (
@@ -85,7 +130,7 @@ export default function VendorQueue({ businesses }) {
 
   return (
     <div className="flex flex-col gap-4">
-      {businesses.map((b) => <VendorRow key={b.id} business={b} />)}
+      {businesses.map((b) => <VendorRow key={b.id} business={b} society={societiesById?.[b.society]} />)}
     </div>
   );
 }

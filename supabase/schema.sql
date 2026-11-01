@@ -37,14 +37,19 @@ create policy "admins can read the admin list"
 
 -- ---------------------------------------------------------------------------
 -- societies -- the residential societies businesses serve. Starts empty;
--- vendors add them during onboarding: their society address
--- is verified with Geoapify geocoding on the server and the society saved with
--- its coordinates (src/app/onboarding/actions.js). Visitors' location is
--- matched against lat/lng to pick their nearest society.
+-- vendors add them during onboarding by typing their address (name, street,
+-- city, PIN) -- matched against existing societies by name+city, or created
+-- if new (src/app/onboarding/actions.js). lat/lng start null: an admin fills
+-- them in by hand, once per society, while reviewing that society's first
+-- business listing (src/app/admin/actions.js, src/components/admin/VendorQueue.jsx).
+-- Visitors' location is matched against lat/lng to pick their nearest society
+-- -- a society with no coordinates yet simply doesn't participate in that
+-- (see societiesByDistance in src/data/societies.js), it isn't an error.
 --
--- Anyone can read; nobody can write through the public API (no insert/update
--- policies) -- new rows only come from that server action, which uses the
--- service-role key after the address check passes.
+-- Anyone can read. Inserts only come from the onboarding server action (uses
+-- the service-role key, no insert policy needed here). Updates (filling in
+-- lat/lng) go through the admin's own session, so there IS an update policy,
+-- restricted to admins.
 -- ---------------------------------------------------------------------------
 create table if not exists societies (
   id text primary key check (id ~ '^[a-z0-9]+(-[a-z0-9]+)*$' and char_length(id) <= 70),
@@ -54,16 +59,25 @@ create table if not exists societies (
   street text not null default '' check (char_length(street) <= 160),
   city text not null default '' check (char_length(city) <= 80),
   pincode text not null default '' check (pincode = '' or pincode ~ '^[1-9][0-9]{5}$'),
-  formatted_address text not null default '' check (char_length(formatted_address) <= 300),
-  lat double precision not null check (lat between -90 and 90),
-  lng double precision not null check (lng between -180 and 180),
-  -- How precise lat/lng are: 'society' (the society itself was found), 'street'
-  -- (its street/locality was), or 'manual' (entered by hand).
-  geo_level text not null default 'manual' check (geo_level in ('society', 'street', 'manual')),
+  lat double precision check (lat is null or lat between -90 and 90),
+  lng double precision check (lng is null or lng between -180 and 180),
   bg text not null default '#E0E7FF' check (bg ~ '^#[0-9A-Fa-f]{6}$'),
   fg text not null default '#4338CA' check (fg ~ '^#[0-9A-Fa-f]{6}$'),
   created_at timestamptz not null default now()
 );
+
+-- Idempotent for databases where this table already has the old geocoding-only columns/shape.
+alter table societies alter column lat drop not null;
+alter table societies alter column lng drop not null;
+alter table societies drop constraint if exists societies_lat_check;
+alter table societies add constraint societies_lat_check check (lat is null or lat between -90 and 90);
+alter table societies drop constraint if exists societies_lng_check;
+alter table societies add constraint societies_lng_check check (lng is null or lng between -180 and 180);
+alter table societies drop column if exists geo_level;
+alter table societies drop column if exists formatted_address;
+-- Both set or both unset -- half a coordinate pair is never meaningfully usable.
+alter table societies drop constraint if exists societies_lat_lng_pair_check;
+alter table societies add constraint societies_lat_lng_pair_check check ((lat is null) = (lng is null));
 
 create index if not exists societies_lat_lng_idx on societies (lat, lng);
 
@@ -73,6 +87,14 @@ drop policy if exists "anyone can read societies" on societies;
 create policy "anyone can read societies"
   on societies for select
   using (true);
+
+-- An admin fills in lat/lng (and only that -- see VendorQueue.jsx, which never lets the UI
+-- resubmit once they're set) while approving that society's first business.
+drop policy if exists "admins can update societies" on societies;
+create policy "admins can update societies"
+  on societies for update
+  using (is_admin())
+  with check (is_admin());
 
 
 -- ---------------------------------------------------------------------------

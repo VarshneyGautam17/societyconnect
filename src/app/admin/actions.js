@@ -16,8 +16,29 @@ async function requireAdminClient() {
   return { supabase, userId: user.id };
 }
 
-export async function approveBusiness(id) {
+/** Approves a pending listing. `coords` (`{ lat, lng }`) is required only the first time a
+ *  business from a brand-new society is approved -- that's when its society still has no
+ *  coordinates (see VendorQueue.jsx, which only shows editable lat/lng fields in that case and
+ *  disables them once set). Ignored if the society already has coordinates, so a stale/resent
+ *  value can never overwrite them. */
+export async function approveBusiness(id, coords) {
   const { supabase, userId } = await requireAdminClient();
+
+  const { data: business, error: businessError } = await supabase.from('businesses').select('society').eq('id', id).single();
+  if (businessError) throw new Error(businessError.message);
+
+  const { data: society, error: societyError } = await supabase.from('societies').select('lat, lng').eq('id', business.society).single();
+  if (societyError) throw new Error(societyError.message);
+
+  if (society.lat === null || society.lng === null) {
+    const lat = Number(coords?.lat);
+    const lng = Number(coords?.lng);
+    if (!Number.isFinite(lat) || lat < -90 || lat > 90) throw new Error('Enter a valid latitude for this society (-90 to 90) before approving.');
+    if (!Number.isFinite(lng) || lng < -180 || lng > 180) throw new Error('Enter a valid longitude for this society (-180 to 180) before approving.');
+    const { error: coordsError } = await supabase.from('societies').update({ lat, lng }).eq('id', business.society);
+    if (coordsError) throw new Error(coordsError.message);
+  }
+
   const { error } = await supabase
     .from('businesses')
     .update({ status: 'approved', reviewed_by: userId, reviewed_at: new Date().toISOString(), rejection_reason: '' })

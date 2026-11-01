@@ -23,7 +23,7 @@ export default function StepServe({ draft, patch, errors, checking }) {
   return (
     <>
       <h2 className="font-headline-sm text-headline-sm text-on-surface mb-2">Where are you based?</h2>
-      <p className="font-body-md text-body-md text-on-surface-variant mb-5">Your society&apos;s address. We check it on the map, so residents nearby find you first.</p>
+      <p className="font-body-md text-body-md text-on-surface-variant mb-5">Your society&apos;s address. We&apos;ll match you with your society on SocietySpot, or add it if it&apos;s new.</p>
       <div className="flex flex-col gap-5">
         <Field label="Society name" error={errors.societyName} hint="Start typing to pick a society already on SocietySpot, or enter a new one.">
           <input
@@ -90,12 +90,12 @@ export default function StepServe({ draft, patch, errors, checking }) {
         ) : verified ? (
           <div className="flex items-start gap-3 rounded-2xl border border-emerald-300/60 bg-emerald-50 px-4 py-3 font-body-sm text-body-sm text-emerald-800">
             <Icon name="circleCheck" className="text-lg flex-none mt-px" />
-            <span>Address found: <strong className="font-semibold">{verified.name}</strong>{verified.place ? `, ${verified.place}` : ''}</span>
+            <span>Society confirmed: <strong className="font-semibold">{verified.name}</strong>{verified.place ? `, ${verified.place}` : ''}</span>
           </div>
         ) : checking ? (
           <div className="flex items-center gap-3 rounded-2xl bg-surface-container px-4 py-3 font-body-sm text-body-sm text-on-surface-variant">
             <span className="w-4 h-4 rounded-full border-2 border-primary border-t-transparent animate-spin flex-none" aria-hidden="true" />
-            Checking your address on the map...
+            Confirming your society...
           </div>
         ) : null}
 

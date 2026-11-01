@@ -84,18 +84,6 @@ export default function Header({ active, minimal = false }) {
               </Link>
             );
           })}
-          <Link
-            href={vendorLink}
-            aria-current={active === 'vendor' ? 'page' : undefined}
-            className={
-              (active === 'vendor'
-                ? 'text-primary font-semibold border-b-2 border-primary pb-1'
-                : 'text-on-surface-variant font-medium hover:text-on-surface transition-colors') +
-              ' font-label-lg text-label-lg whitespace-nowrap'
-            }
-          >
-            For businesses
-          </Link>
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3 flex-none">

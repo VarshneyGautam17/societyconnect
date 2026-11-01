@@ -56,10 +56,6 @@ function logLocation(pos, ranked) {
   console.groupEnd();
 }
 
-function kmLabel(km) {
-  return km < 1 ? 'under 1 km' : `${Math.round(km)} km`;
-}
-
 /** The "Use my location" button's behavior: finds the nearest society, selects it when it's
  *  within NEAR_ENOUGH_KM, and returns a status line describing what happened. */
 export function useSocietyLocator(initialMessage = '') {
@@ -74,9 +70,9 @@ export function useSocietyLocator(initialMessage = '') {
       const { society, km } = await locateNearestSociety();
       if (km <= NEAR_ENOUGH_KM) {
         dispatch(autoSelectSociety(society.id));
-        setMessage(`Showing ${socShort(society.id)}, ${kmLabel(km)} from you. Not yours? Pick another.`);
+        setMessage(`Showing ${socShort(society.id)}, your nearest society. Not yours? Pick another.`);
       } else {
-        setMessage(`No SocietySpot society near you yet (closest is ${socShort(society.id)}, ${kmLabel(km)} away). Pick one from the list.`);
+        setMessage(`No SocietySpot society near you yet (closest is ${socShort(society.id)}). Pick one from the list.`);
       }
     } catch (err) {
       setMessage(

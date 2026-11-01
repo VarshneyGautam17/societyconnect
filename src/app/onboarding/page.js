@@ -110,9 +110,9 @@ export default function OnboardingPage() {
     storageSet('draft', draft);
     toast('Saved. You can continue later on this device.');
   }
-  /* The address step only moves on once its address is found on the map (geocoded on the
-     server, which also saves the society with its coordinates). An unchanged, already-verified
-     address isn't checked twice. */
+  /* The address step only moves on once its society is matched or created on the server (see
+     resolveVendorSociety -- no geocoding, just name+city matching; coordinates come later from
+     an admin). An unchanged, already-verified address isn't checked twice. */
   async function verifyAddress() {
     const key = addressKey(draft);
     if (draft.society?.key === key) return true;
