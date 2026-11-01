@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { emptyVendor } from '@/data/businesses';
 import { publishVendor, setVendor } from '@/store/slices/vendorSlice';
 import { upsertSociety } from '@/data/societies';
-import { resolveVendorSociety } from '@/app/onboarding/actions';
+import { resolveVendorSociety, sendOnboardingOtp, verifyOnboardingOtp } from '@/app/onboarding/actions';
 import { submitListing } from '@/app/onboarding/listing';
 import { storageGet, storageSet } from '@/lib/storage';
 import { useToast } from '@/components/ui/Toast';
@@ -135,19 +135,48 @@ export default function OnboardingPage() {
     return true;
   }
 
+  /* Resends (or first-sends) the WhatsApp code to draft.phone -- same action either way, since
+     sendOnboardingOtp always issues a fresh code. */
+  async function sendCode() {
+    setChecking(true);
+    setErrors({});
+    let res;
+    try {
+      res = await sendOnboardingOtp(draft.phone);
+    } catch {
+      res = { error: 'Could not send the code right now. Please try again.' };
+    }
+    setChecking(false);
+    if (res.error) {
+      setErrors({ phone: res.error });
+      return false;
+    }
+    patch({ otpSent: true, otp: '' });
+    return true;
+  }
+
   async function onSubmit(e) {
     e.preventDefault();
     if (checking) return;
     if (step === 0 && draft.otpSent) {
-      if (!/^\d{4}$/.test(draft.otp || '')) { setErrors({ otp: 'Enter the 4-digit code.' }); return; }
+      if (!/^\d{6}$/.test(draft.otp || '')) { setErrors({ otp: 'Enter the 6-digit code.' }); return; }
+      setChecking(true);
       setErrors({});
+      let res;
+      try {
+        res = await verifyOnboardingOtp(draft.phone, draft.otp);
+      } catch {
+        res = { error: 'Could not verify that code right now. Please try again.' };
+      }
+      setChecking(false);
+      if (res.error) { setErrors({ otp: res.error }); return; }
       setStep(1);
       return;
     }
     const nextErrors = validateStep(step, draft);
     if (Object.keys(nextErrors).length) { setErrors(nextErrors); return; }
     if (step === 0) {
-      patch({ otpSent: true });
+      await sendCode();
       return;
     }
     if (step === 2 && !(await verifyAddress())) return;
@@ -274,12 +303,16 @@ export default function OnboardingPage() {
               {step < 4 ? (
                 <form onSubmit={onSubmit} noValidate>
                   <WizardHead step={step} total={STEP_COUNT} />
-                  {step === 0 && <StepAccount draft={draft} patch={patch} errors={errors} />}
+                  {step === 0 && <StepAccount draft={draft} patch={patch} errors={errors} checking={checking} onResend={sendCode} />}
                   {step === 1 && <StepBasics draft={draft} patch={patch} errors={errors} />}
                   {step === 2 && <StepServe draft={draft} patch={patch} errors={errors} checking={checking} />}
                   {step === 3 && <StepOfferings draft={draft} patch={patch} errors={errors} />}
                   <WizardFoot
-                    nextLabel={checking ? 'Checking address...' : step === 0 ? (draft.otpSent ? 'Verify and continue' : 'Send code') : step === 3 ? 'Preview my page' : 'Continue'}
+                    nextLabel={
+                      checking
+                        ? (step === 0 ? (draft.otpSent ? 'Verifying...' : 'Sending code...') : 'Checking address...')
+                        : step === 0 ? (draft.otpSent ? 'Verify and continue' : 'Send code') : step === 3 ? 'Preview my page' : 'Continue'
+                    }
                     busy={checking}
                     hideBack={step === 0}
                     onBack={onBack}

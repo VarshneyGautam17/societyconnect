@@ -3,6 +3,20 @@
 import { createServiceRoleClient } from '@/lib/supabase/serviceRole';
 import { societyColors } from '@/data/societies';
 import { slugify } from '@/lib/slugify';
+import { sendOtp, verifyOtp } from '@/lib/otp';
+
+/** Verifies the vendor actually controls the mobile number they're onboarding with, using the
+ *  same WhatsApp OTP flow (and the same approved template) as resident login -- see
+ *  src/lib/otp.js. No session/cookie comes out of this (onboarding doesn't need one; the
+ *  listing itself stays unauthenticated, see submitListing in listing.js), it just confirms the
+ *  number before step 1. */
+export async function sendOnboardingOtp(phone) {
+  return sendOtp(phone, 'onboarding');
+}
+
+export async function verifyOnboardingOtp(phone, code) {
+  return verifyOtp(phone, code);
+}
 
 /* Vendor onboarding, "Where are you?" step: the vendor's society is looked up -- or created --
    in the `societies` table from the address they typed, no geocoding involved. The society
