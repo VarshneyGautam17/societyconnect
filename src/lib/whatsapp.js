@@ -80,7 +80,7 @@ export async function sendVendorAlert(vendorWhatsapp, businessName, actionText, 
     digits,
     requireEnv('WHATSAPP_ALERT_TEMPLATE_NAME'),
     process.env.WHATSAPP_ALERT_TEMPLATE_LANG || 'en',
-    [{ type: 'body', parameters: [businessName, actionText, visitorLine].map((text) => ({ type: 'text', text })) }],
+    [{ type: 'body', parameters: [businessName, actionText, visitorLine].map((text) => ({ type: 'text', text: String(text).replace(/\s+/g, ' ').trim() })) }],
     'Could not send the vendor alert on WhatsApp.'
   );
 }

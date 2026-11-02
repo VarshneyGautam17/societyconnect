@@ -17,15 +17,10 @@ import { alertTemplateConfigured, sendVendorAlert } from '@/lib/whatsapp';
    WhatsApp outage never blocks a resident's click. */
 
 const ACTION_TEXT = {
-  reveal: 'viewed your phone number',
-  whatsapp: 'opened a WhatsApp chat with you',
-  call: 'tried to call you'
+  reveal: 'A resident viewed your phone number',
+  whatsapp: 'A resident opened a WhatsApp chat with you',
+  call: 'A resident tried to call you'
 };
-
-/* Same visitor tapping the same button on the same listing repeatedly (e.g. opening WhatsApp,
-   going back, opening it again) shouldn't re-alert the vendor every time -- this is a lead
-   notification, not a page-view counter. Only checked when the visitor is identified (a resident
-   session); an anonymous click (gate disabled) always alerts, since there's nothing to dedupe on. */
 const COOLDOWN_MS = 10 * 60 * 1000;
 
 async function recentlyNotified(supabase, businessId, type, visitorPhone) {
@@ -78,11 +73,13 @@ export async function notifyVendorEnquiry(businessId, who, msg) {
     const { data: business } = await supabase.from('businesses').select('name, whatsapp').eq('id', businessId).eq('status', 'approved').maybeSingle();
     if (!business) return;
 
-    const preview = String(msg || '').trim().slice(0, 120);
+    // Template parameters can't contain newlines/tabs or runs of spaces (Meta rejects the send).
+    const preview = String(msg || '').replace(/\s+/g, ' ').trim().slice(0, 120).replace(/[.\s]+$/, '');
+    const name = String(who || '').replace(/\s+/g, ' ').trim().slice(0, 40);
     await sendVendorAlert(
       business.whatsapp,
       business.name,
-      `sent an enquiry from "${who}": ${preview}`,
+      `A resident${name ? ` (${name})` : ''} sent an enquiry: "${preview}"`,
       visitorPhone ? `+91 ${visitorPhone}` : 'Not shared (visitor not signed in)'
     );
   } catch (err) {
