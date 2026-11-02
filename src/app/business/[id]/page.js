@@ -54,7 +54,10 @@ export default function BusinessPage() {
   const [remoteBusiness, setRemoteBusiness] = useState(null);
   const [remoteChecked, setRemoteChecked] = useState(false);
   const business = localBusiness || remoteBusiness;
-  const isRemote = !localBusiness && !!remoteBusiness;
+  /* A real Supabase row (uuid id) vs a demo/sample listing -- not "came from the fetch above":
+     approved listings are usually already in Redux from the boot load, and their contact events,
+     enquiries and vendor alerts still have to go to the database. Same test as BizCard. */
+  const isRemote = !!business && isUuid(business.id);
   const saved = useSelector((state) => (business ? selectIsSaved(state, business.id) : false));
   const [revealed, setRevealed] = useState(false);
   useSocieties(); // re-render once the database society list loads (socOf/socShort below read it)
@@ -77,7 +80,8 @@ export default function BusinessPage() {
   useEffect(() => {
     if (!business) return;
     if (isRemote) {
-      createClient().from('events').insert({ business_id: business.id, type: 'view' });
+      // Supabase query builders are lazy -- nothing is sent until it's awaited/then'd.
+      createClient().from('events').insert({ business_id: business.id, type: 'view' }).then(() => {});
     } else {
       dispatch(recordEvent({ type: 'view', id: business.id }));
     }
