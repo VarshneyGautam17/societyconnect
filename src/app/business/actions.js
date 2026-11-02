@@ -22,66 +22,52 @@ const ACTION_TEXT = {
   call: 'A resident tried to call you'
 };
 const COOLDOWN_MS = 10 * 60 * 1000;
+const ALERT_TYPES = ['reveal', 'whatsapp', 'call', 'enquiry'];
 
-async function recentlyNotified(supabase, businessId, type, visitorPhone) {
+async function recentlyNotified(supabase, businessId, visitorPhone) {
   if (!visitorPhone) return false;
   const { data } = await supabase
     .from('events')
     .select('id')
     .eq('business_id', businessId)
-    .eq('type', type)
+    .in('type', ALERT_TYPES)
     .eq('visitor_phone', visitorPhone)
     .gte('created_at', new Date(Date.now() - COOLDOWN_MS).toISOString())
     .limit(1);
   return Boolean(data?.length);
 }
 
-/** Records a contact-intent event (`type` is 'reveal' | 'whatsapp' | 'call') for a real,
- *  approved business and alerts the vendor on WhatsApp, unless the same resident triggered the
- *  same type on the same listing within the last 10 minutes. */
+
+async function recordAndAlert(businessId, type, actionText) {
+  const supabase = createServiceRoleClient();
+  const session = await getResidentSession();
+  const visitorPhone = session?.phone || '';
+
+  const alreadyNotified = await recentlyNotified(supabase, businessId, visitorPhone);
+  await supabase.from('events').insert({ business_id: businessId, type, visitor_phone: visitorPhone });
+  if (alreadyNotified || !alertTemplateConfigured()) return;
+
+  const { data: business } = await supabase.from('businesses').select('name, whatsapp').eq('id', businessId).eq('status', 'approved').maybeSingle();
+  if (!business) return;
+
+  await sendVendorAlert(business.whatsapp, business.name, actionText, visitorPhone ? `+91 ${visitorPhone}` : 'Not shared (visitor not signed in)');
+}
+
 export async function recordContact(businessId, type) {
   if (!['reveal', 'whatsapp', 'call'].includes(type)) return;
-
   try {
-    const supabase = createServiceRoleClient();
-    const session = await getResidentSession();
-    const visitorPhone = session?.phone || '';
-
-    const alreadyNotified = await recentlyNotified(supabase, businessId, type, visitorPhone);
-    await supabase.from('events').insert({ business_id: businessId, type, visitor_phone: visitorPhone });
-    if (alreadyNotified || !alertTemplateConfigured()) return;
-
-    const { data: business } = await supabase.from('businesses').select('name, whatsapp').eq('id', businessId).eq('status', 'approved').maybeSingle();
-    if (!business) return;
-
-    await sendVendorAlert(business.whatsapp, business.name, ACTION_TEXT[type], visitorPhone ? `+91 ${visitorPhone}` : 'Not shared (visitor not signed in)');
+    await recordAndAlert(businessId, type, ACTION_TEXT[type]);
   } catch (err) {
     console.error('[business] recordContact failed:', err.message);
   }
 }
 
-/** Alerts the vendor that an enquiry came in. The enquiry row itself is still inserted
- *  client-side (see EnquiryForm.jsx, same public-insert model as the rest of the app); this
- *  only adds the WhatsApp side-effect once that insert has already succeeded. */
 export async function notifyVendorEnquiry(businessId, who, msg) {
-  if (!alertTemplateConfigured()) return;
   try {
-    const supabase = createServiceRoleClient();
-    const session = await getResidentSession();
-    const visitorPhone = session?.phone || '';
-
-    const { data: business } = await supabase.from('businesses').select('name, whatsapp').eq('id', businessId).eq('status', 'approved').maybeSingle();
-    if (!business) return;
-
     // Template parameters can't contain newlines/tabs or runs of spaces (Meta rejects the send).
     const preview = String(msg || '').replace(/\s+/g, ' ').trim().slice(0, 120).replace(/[.\s]+$/, '');
     const name = String(who || '').replace(/\s+/g, ' ').trim().slice(0, 40);
-    await sendVendorAlert(
-      business.whatsapp,
-      business.name,
-      `A resident${name ? ` (${name})` : ''} sent an enquiry: "${preview}"`,
-      visitorPhone ? `+91 ${visitorPhone}` : 'Not shared (visitor not signed in)'
-    );
+    await recordAndAlert(businessId, 'enquiry', `A resident${name ? ` (${name})` : ''} sent an enquiry: "${preview}"`);
   } catch (err) {
     console.error('[business] notifyVendorEnquiry failed:', err.message);
   }

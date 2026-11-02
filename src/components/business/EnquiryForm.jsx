@@ -43,7 +43,6 @@ export default function EnquiryForm({ businessId, isRemote = false }) {
           toast('Could not send that enquiry. Try again.');
           return;
         }
-        supabase.from('events').insert({ business_id: businessId, type: 'enquiry' });
         notifyVendorEnquiry(businessId, trimmedName, trimmedMsg);
       } else {
         dispatch(addEnquiry({ biz: businessId, who: trimmedName, msg: trimmedMsg, t: Date.now() }));
