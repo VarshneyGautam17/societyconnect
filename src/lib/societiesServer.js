@@ -14,7 +14,7 @@ import { unstable_cache } from 'next/cache';
 export const getCachedSocieties = unstable_cache(
   async () => {
     const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-    const { data, error } = await supabase.from('societies').select('id, name, place, lat, lng, bg, fg').order('name');
+    const { data, error } = await supabase.from('societies').select('id, name, place, lat, lng, photo, bg, fg').order('name');
     if (error) throw error;
     return data;
   },

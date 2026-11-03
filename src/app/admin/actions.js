@@ -16,11 +16,12 @@ async function requireAdminClient() {
   return { supabase, userId: user.id };
 }
 
-/** Approves a pending listing. `coords` (`{ lat, lng }`) is required only the first time a
- *  business from a brand-new society is approved -- that's when its society still has no
- *  coordinates (see VendorQueue.jsx, which only shows editable lat/lng fields in that case and
- *  disables them once set). Ignored if the society already has coordinates, so a stale/resent
- *  value can never overwrite them. */
+/** Approves a pending listing. `coords` (`{ lat, lng, photo }`) is required only the first time
+ *  a business from a brand-new society is approved -- that's when its society still has no
+ *  coordinates (see VendorQueue.jsx, which only shows the editable lat/lng + cover-photo fields
+ *  in that case and disables them once set). Ignored if the society already has coordinates, so
+ *  a stale/resent value can never overwrite them -- and a society that already has coordinates
+ *  from before the photo requirement existed is never retroactively blocked on one. */
 export async function approveBusiness(id, coords) {
   const { supabase, userId } = await requireAdminClient();
 
@@ -33,9 +34,11 @@ export async function approveBusiness(id, coords) {
   if (society.lat === null || society.lng === null) {
     const lat = Number(coords?.lat);
     const lng = Number(coords?.lng);
+    const photo = typeof coords?.photo === 'string' ? coords.photo.trim().slice(0, 300) : '';
     if (!Number.isFinite(lat) || lat < -90 || lat > 90) throw new Error('Enter a valid latitude for this society (-90 to 90) before approving.');
     if (!Number.isFinite(lng) || lng < -180 || lng > 180) throw new Error('Enter a valid longitude for this society (-180 to 180) before approving.');
-    const { error: coordsError } = await supabase.from('societies').update({ lat, lng }).eq('id', business.society);
+    if (!photo) throw new Error('Add a cover photo for this society before approving.');
+    const { error: coordsError } = await supabase.from('societies').update({ lat, lng, photo }).eq('id', business.society);
     if (coordsError) throw new Error(coordsError.message);
   }
 

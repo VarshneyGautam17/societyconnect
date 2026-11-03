@@ -30,7 +30,13 @@ export function bizImg(b, w, h) {
   return imgUrl(catOf(b.cat).images, seedOf(b.id), w, h);
 }
 
+/** The society's own uploaded cover photo, set by an admin while approving its first business
+ *  (see approveBusiness, src/app/admin/actions.js) -- falls back to a category-matched
+ *  placeholder for societies that predate this or are still awaiting their first approval. */
 export function socImg(s, w, h) {
+  if (s.photo) {
+    return cloudinaryUrl(s.photo, { w: w || 640, h: h || 400 });
+  }
   return imgUrl(SOCIETY_IMAGES, seedOf(s.id) + 7, w, h);
 }
 

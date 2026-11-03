@@ -61,6 +61,11 @@ create table if not exists societies (
   pincode text not null default '' check (pincode = '' or pincode ~ '^[1-9][0-9]{5}$'),
   lat double precision check (lat is null or lat between -90 and 90),
   lng double precision check (lng is null or lng between -180 and 180),
+  -- Cloudinary public_id for the society's cover photo. Like lat/lng, null until an admin sets
+  -- it -- see societies_photo_check below and approveBusiness (src/app/admin/actions.js), which
+  -- requires it (alongside lat/lng) the first time a business from a brand-new society is
+  -- approved, but never retroactively for a society that already had coordinates.
+  photo text,
   bg text not null default '#E0E7FF' check (bg ~ '^#[0-9A-Fa-f]{6}$'),
   fg text not null default '#4338CA' check (fg ~ '^#[0-9A-Fa-f]{6}$'),
   created_at timestamptz not null default now()
@@ -78,6 +83,11 @@ alter table societies drop column if exists formatted_address;
 -- Both set or both unset -- half a coordinate pair is never meaningfully usable.
 alter table societies drop constraint if exists societies_lat_lng_pair_check;
 alter table societies add constraint societies_lat_lng_pair_check check ((lat is null) = (lng is null));
+
+-- Idempotent for databases where this table predates the photo column.
+alter table societies add column if not exists photo text;
+alter table societies drop constraint if exists societies_photo_check;
+alter table societies add constraint societies_photo_check check (photo is null or char_length(photo) <= 300);
 
 create index if not exists societies_lat_lng_idx on societies (lat, lng);
 
@@ -427,12 +437,17 @@ create table if not exists enquiries (
   id uuid primary key default gen_random_uuid(),
   business_id uuid not null references businesses(id) on delete cascade,
   who text not null check (char_length(who) between 1 and 100),
-  msg text not null check (char_length(msg) between 1 and 1000),
+  msg text not null check (char_length(msg) between 1 and 500),
   status text not null default 'New' check (status in ('New', 'Replied')),
   created_at timestamptz not null default now()
 );
 
 create index if not exists enquiries_business_idx on enquiries (business_id, created_at desc);
+
+-- Idempotent for databases created before the cap dropped from 1000 to 500 -- the inline check
+-- above only applies on a fresh `create table`, not an existing one.
+alter table enquiries drop constraint if exists enquiries_msg_check;
+alter table enquiries add constraint enquiries_msg_check check (char_length(msg) between 1 and 500);
 
 alter table enquiries enable row level security;
 

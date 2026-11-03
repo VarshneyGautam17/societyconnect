@@ -13,7 +13,7 @@ export default async function AdminVendorsPage() {
      lat/lng are never stale by the time an admin approves its first business. */
   const societyIds = [...new Set((pending || []).map((b) => b.society))];
   const { data: societies } = societyIds.length
-    ? await supabase.from('societies').select('id, street, city, pincode, lat, lng').in('id', societyIds)
+    ? await supabase.from('societies').select('id, street, city, pincode, lat, lng, photo').in('id', societyIds)
     : { data: [] };
   const societiesById = Object.fromEntries((societies || []).map((s) => [s.id, s]));
 

@@ -53,13 +53,13 @@ function Row({ business }) {
       try {
         await approveBusiness(business.id);
       } catch (err) {
-        if (!/latitude|longitude/i.test(err.message || '')) throw err;
-        const socName = socOf(business.society).name;
-        const lat = Number(window.prompt(`${socName} has no map location yet. Enter its latitude (-90 to 90):`, ''));
-        if (!Number.isFinite(lat) || lat < -90 || lat > 90) throw new Error('Enter a valid latitude for this society (-90 to 90) before approving.');
-        const lng = Number(window.prompt(`Enter ${socName}'s longitude (-180 to 180):`, ''));
-        if (!Number.isFinite(lng) || lng < -180 || lng > 180) throw new Error('Enter a valid longitude for this society (-180 to 180) before approving.');
-        await approveBusiness(business.id, { lat, lng });
+        /* A brand-new society needs coordinates AND a cover photo set before its first listing
+           can go live (see approveBusiness, src/app/admin/actions.js) -- that needs a file
+           upload, which this dense table row has no room for, so send the admin to Vendor
+           requests, which has the full inline setup form, instead of a window.prompt that can
+           only ever collect lat/lng. */
+        if (!/latitude|longitude|cover photo/i.test(err.message || '')) throw err;
+        throw new Error(`${socOf(business.society).name} needs its map location and a cover photo set first -- do that from Vendor requests, then approve from there.`);
       }
     }, `${business.name} approved and live.`);
   }
