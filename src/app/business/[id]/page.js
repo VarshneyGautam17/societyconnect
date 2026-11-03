@@ -9,7 +9,7 @@ import { socOf, socShort } from '@/data/societies';
 import { useSocieties } from '@/lib/societies';
 import { bizImg } from '@/lib/images';
 import { cloudinaryUrl } from '@/lib/cloudinary';
-import { selectBusinessById, selectIsSaved } from '@/store/selectors';
+import { selectBusinessById, selectIsSaved, selectListingsLoading } from '@/store/selectors';
 import { recordEvent } from '@/store/slices/eventsSlice';
 import { toggleSaved } from '@/store/slices/savedSlice';
 import { createClient } from '@/lib/supabase/client';
@@ -46,11 +46,13 @@ export default function BusinessPage() {
   const dispatch = useDispatch();
   const toast = useToast();
   const localBusiness = useSelector((state) => selectBusinessById(state, id));
-  /* Approved listings (loaded at boot) and "mine" are in Redux; a pending listing or one
-     opened before that load finishes isn't, so
+  const listingsLoading = useSelector(selectListingsLoading);
+  /* Approved listings (loaded at boot) and "mine" are in Redux; a pending listing isn't, so
      this is the fallback that makes a real listing (and admin previews of
      pending ones) viewable, and is what lets its view/contact events be
-     real rows in Supabase instead of this browser's localStorage. */
+     real rows in Supabase instead of this browser's localStorage. Held off until the boot-wide
+     load finishes (listingsLoading) so an approved listing's row isn't fetched twice -- once by
+     that load, once here -- while both are in flight for the same id. */
   const [remoteBusiness, setRemoteBusiness] = useState(null);
   const [remoteChecked, setRemoteChecked] = useState(false);
   const business = localBusiness || remoteBusiness;
@@ -63,7 +65,7 @@ export default function BusinessPage() {
   useSocieties(); // re-render once the database society list loads (socOf/socShort below read it)
 
   useEffect(() => {
-    if (localBusiness || !id) return;
+    if (localBusiness || !id || listingsLoading) return;
     let cancelled = false;
     /* `id` can be either a real row id or a vendor's custom slug (societyspot.app/business/<slug>,
        set in onboarding/the edit page) -- `id` is a uuid column, so a non-uuid value has to query
@@ -75,7 +77,7 @@ export default function BusinessPage() {
       setRemoteChecked(true);
     });
     return () => { cancelled = true; };
-  }, [id, localBusiness]);
+  }, [id, localBusiness, listingsLoading]);
 
   useEffect(() => {
     if (!business) return;

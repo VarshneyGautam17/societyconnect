@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateVendor } from '@/store/slices/vendorSlice';
-import { getListingStatus } from '@/app/onboarding/listing';
+import { getListingData } from '@/app/onboarding/listing';
 import Icon from '@/components/ui/Icon';
 import { useToast } from '@/components/ui/Toast';
 import Sidebar from '@/components/dashboard/Sidebar';
@@ -24,45 +24,70 @@ export default function DashboardPage() {
   const live = !!(storedVendor && storedVendor.published);
   const vendor = storedVendor;
   const status = vendor?.remoteId ? vendor.status : 'unsent';
+  const [remoteStats, setRemoteStats] = useState(undefined);
 
-  /* The admin's decision lives in the database; refresh the copy on this device. */
+  /* The admin's decision and this listing's real views/contacts/enquiries both live in
+     Supabase, not this browser -- see getListingData in src/app/onboarding/listing.js. One
+     call covers both, instead of two separate round trips for the same listing. */
   useEffect(() => {
     if (!vendor?.remoteId) return;
-    getListingStatus(vendor.remoteId).then((res) => {
-      if (res && (res.status !== vendor.status || res.reason !== (vendor.rejectionReason || ''))) {
-        dispatch(updateVendor({ status: res.status, rejectionReason: res.reason }));
+    let cancelled = false;
+    getListingData(vendor.remoteId).then((res) => {
+      if (cancelled || !res) return;
+      if (res.status && (res.status.status !== vendor.status || res.status.reason !== (vendor.rejectionReason || ''))) {
+        dispatch(updateVendor({ status: res.status.status, rejectionReason: res.status.reason }));
       }
+      if (res.stats) setRemoteStats(res.stats);
     }).catch(() => {});
+    return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- once per visit
   }, [vendor?.remoteId]);
 
   const data = useMemo(() => {
-    if (live) {
-      const myEvents = events.filter((e) => e.id === 'mine');
-      const myEnquiries = enquiries.filter((e) => e.biz === 'mine');
-      const n = (type) => myEvents.filter((e) => e.type === type).length;
-      const bars = [];
-      for (let i = 13; i >= 0; i--) {
-        const day = new Date();
-        day.setHours(0, 0, 0, 0);
-        day.setDate(day.getDate() - i);
-        const next = day.getTime() + 86400000;
-        const inDay = myEvents.filter((e) => e.t >= day.getTime() && e.t < next);
-        bars.push({
-          day: String(day.getDate()),
-          v: inDay.filter((e) => e.type === 'view').length,
-          c: inDay.filter((e) => e.type !== 'view' && e.type !== 'enquiry').length
-        });
+    if (!live) return null;
+
+    if (vendor.remoteId) {
+      if (!remoteStats) {
+        const bars = [];
+        for (let i = 13; i >= 0; i--) {
+          const day = new Date();
+          day.setHours(0, 0, 0, 0);
+          day.setDate(day.getDate() - i);
+          bars.push({ day: String(day.getDate()), v: 0, c: 0 });
+        }
+        return { views: 0, wa: 0, call: 0, enqN: 0, savedN: 0, bars, enquiriesView: [], note: 'Loading your real numbers...' };
       }
       return {
-        views: n('view'), wa: n('whatsapp'), call: n('call'), enqN: myEnquiries.length,
-        savedN: savedIds.includes('mine') ? 1 : 0, bars,
-        enquiriesView: myEnquiries.map((e) => ({ who: e.who, msg: e.msg, when: new Date(e.t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }), status: 'New' })),
-        note: 'These numbers come from this browser only. A contact attempt means a button was tapped, not that a call or message was completed.'
+        views: remoteStats.views, wa: remoteStats.wa, call: remoteStats.call, enqN: remoteStats.enqN,
+        savedN: savedIds.includes(vendor.remoteId) ? 1 : 0, bars: remoteStats.bars, enquiriesView: remoteStats.enquiriesView,
+        note: 'Real views, contact taps and enquiries from residents on your live listing, last 30 days. A contact attempt means a button was tapped, not that a call or message was completed.'
       };
     }
-    return null;
-  }, [live, events, enquiries, savedIds]);
+
+    // Not submitted yet -- nothing in the database, so fall back to this device's local activity.
+    const myEvents = events.filter((e) => e.id === 'mine');
+    const myEnquiries = enquiries.filter((e) => e.biz === 'mine');
+    const n = (type) => myEvents.filter((e) => e.type === type).length;
+    const bars = [];
+    for (let i = 13; i >= 0; i--) {
+      const day = new Date();
+      day.setHours(0, 0, 0, 0);
+      day.setDate(day.getDate() - i);
+      const next = day.getTime() + 86400000;
+      const inDay = myEvents.filter((e) => e.t >= day.getTime() && e.t < next);
+      bars.push({
+        day: String(day.getDate()),
+        v: inDay.filter((e) => e.type === 'view').length,
+        c: inDay.filter((e) => e.type !== 'view' && e.type !== 'enquiry').length
+      });
+    }
+    return {
+      views: n('view'), wa: n('whatsapp'), call: n('call'), enqN: myEnquiries.length,
+      savedN: savedIds.includes('mine') ? 1 : 0, bars,
+      enquiriesView: myEnquiries.map((e) => ({ who: e.who, msg: e.msg, when: new Date(e.t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }), status: 'New' })),
+      note: 'This listing is only saved on this device, so these numbers are this browser\'s own activity. Submit it for review to start collecting real numbers.'
+    };
+  }, [live, vendor, remoteStats, events, enquiries, savedIds]);
 
   const trialEnd = useMemo(() => {
     const end = new Date();

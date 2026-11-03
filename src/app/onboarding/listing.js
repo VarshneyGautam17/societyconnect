@@ -110,10 +110,61 @@ export async function submitListing(v) {
   return { id: data.id, status: data.status };
 }
 
-/** Current review status of a submitted listing, for the vendor's dashboard:
- *  `{ status, reason }`, or null if it no longer exists (deleted by an admin). */
-export async function getListingStatus(id) {
+/** Everything the vendor's dashboard needs about a submitted listing, in one round trip:
+ *  review status (`{ status, reason }`, null if the listing no longer exists -- deleted by an
+ *  admin) plus real analytics read straight from `events`/`enquiries` (see supabase/schema.sql).
+ *  Same no-login, lookup-by-id trust model throughout, since vendors don't have a Supabase auth
+ *  session to satisfy the owner_id RLS policies. `stats` is null on a lookup failure so the
+ *  caller can keep showing the last good numbers. */
+export async function getListingData(id) {
   if (typeof id !== 'string' || !/^[0-9a-f-]{36}$/i.test(id)) return null;
-  const { data } = await createServiceRoleClient().from('businesses').select('status, rejection_reason').eq('id', id).maybeSingle();
-  return data ? { status: data.status, reason: data.rejection_reason || '' } : null;
+  const supabase = createServiceRoleClient();
+  const since = new Date(Date.now() - 30 * 86400000).toISOString();
+
+  const [{ data: business }, { data: events, error: eventsError }, { data: enquiries, error: enquiriesError }] = await Promise.all([
+    supabase.from('businesses').select('status, rejection_reason').eq('id', id).maybeSingle(),
+    supabase.from('events').select('type, created_at').eq('business_id', id).gte('created_at', since),
+    supabase.from('enquiries').select('who, msg, status, created_at').eq('business_id', id).order('created_at', { ascending: false }).limit(50)
+  ]);
+
+  const status = business ? { status: business.status, reason: business.rejection_reason || '' } : null;
+
+  if (eventsError || enquiriesError) {
+    console.error('[dashboard] could not load stats:', eventsError || enquiriesError);
+    return { status, stats: null };
+  }
+
+  const n = (type) => events.filter((e) => e.type === type).length;
+  const bars = [];
+  for (let i = 13; i >= 0; i--) {
+    const day = new Date();
+    day.setHours(0, 0, 0, 0);
+    day.setDate(day.getDate() - i);
+    const next = day.getTime() + 86400000;
+    const inDay = events.filter((e) => {
+      const t = new Date(e.created_at).getTime();
+      return t >= day.getTime() && t < next;
+    });
+    bars.push({
+      day: String(day.getDate()),
+      v: inDay.filter((e) => e.type === 'view').length,
+      c: inDay.filter((e) => e.type !== 'view').length
+    });
+  }
+
+  const stats = {
+    views: n('view'),
+    wa: n('whatsapp'),
+    call: n('call'),
+    enqN: enquiries.length,
+    bars,
+    enquiriesView: enquiries.map((e) => ({
+      who: e.who,
+      msg: e.msg,
+      when: new Date(e.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
+      status: e.status
+    }))
+  };
+
+  return { status, stats };
 }

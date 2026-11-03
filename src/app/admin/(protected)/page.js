@@ -2,27 +2,31 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import Icon from '@/components/ui/Icon';
 
-async function countByStatus(supabase, status) {
-  const { count } = await supabase.from('businesses').select('id', { count: 'exact', head: true }).eq('status', status);
-  return count || 0;
+/* PostgREST has no GROUP BY aggregation over the JS client without a DB function/view, and at
+   this scale (dozens of vendors, not millions) fetching just the status column and counting in
+   JS is simpler than 4 separate count queries -- see admin/businesses/page.js, same pattern. */
+function countByStatus(businesses) {
+  const counts = { pending: 0, approved: 0, disabled: 0, rejected: 0 };
+  for (const b of businesses) {
+    if (b.status in counts) counts[b.status]++;
+  }
+  return counts;
 }
 
 export default async function AdminDashboardPage() {
   const supabase = await createClient();
-  const [pending, approved, disabled, rejected, enquiries] = await Promise.all([
-    countByStatus(supabase, 'pending'),
-    countByStatus(supabase, 'approved'),
-    countByStatus(supabase, 'disabled'),
-    countByStatus(supabase, 'rejected'),
-    supabase.from('enquiries').select('id', { count: 'exact', head: true }).then((r) => r.count || 0)
+  const [{ data: businesses }, { count: enquiries }] = await Promise.all([
+    supabase.from('businesses').select('status'),
+    supabase.from('enquiries').select('id', { count: 'exact', head: true })
   ]);
+  const { pending, approved, disabled, rejected } = countByStatus(businesses || []);
 
   const stats = [
     ['Pending approval', pending, '/admin/vendors'],
     ['Live businesses', approved, '/admin/businesses'],
     ['Disabled', disabled, '/admin/businesses'],
     ['Rejected', rejected, '/admin/businesses'],
-    ['Total enquiries', enquiries, null]
+    ['Total enquiries', enquiries || 0, null]
   ];
 
   return (
