@@ -4,13 +4,14 @@ import Icon from '@/components/ui/Icon';
  *  own theme color -- it's a brand people recognize instantly, the same way a "Pay with..."
  *  button keeps that provider's own color. `label` renders icon+text, omit it for a compact
  *  round icon button. */
-export default function WhatsAppButton({ onClick, label, ariaLabel, className = '' }) {
+export default function WhatsAppButton({ onClick, label, ariaLabel, disabled = false, className = '' }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={disabled}
       aria-label={label ? undefined : (ariaLabel || 'WhatsApp')}
-      className={`inline-flex items-center justify-center gap-2 rounded-full bg-[#25D366] text-white font-semibold shadow-sm hover:bg-[#1ebd58] active:scale-[0.97] transition-all ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-full bg-[#25D366] text-white font-semibold shadow-sm hover:bg-[#1ebd58] active:scale-[0.97] transition-all disabled:opacity-50 disabled:pointer-events-none ${className}`}
     >
       <Icon name="chat" className="text-lg" filled />
       {label && <span>{label}</span>}

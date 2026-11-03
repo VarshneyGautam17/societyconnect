@@ -61,7 +61,15 @@ export default function BusinessPage() {
      enquiries and vendor alerts still have to go to the database. Same test as BizCard. */
   const isRemote = !!business && isUuid(business.id);
   const saved = useSelector((state) => (business ? selectIsSaved(state, business.id) : false));
+  const residentPhone = useSelector((state) => state.access.phone);
   const [revealed, setRevealed] = useState(false);
+  /* A vendor previewing their own listing while signed in as a resident on the same number --
+     reveal/WhatsApp/call make no sense pointed at yourself, and would otherwise record a
+     contact event (and try to WhatsApp-alert the vendor about themselves). */
+  const isOwnListing = Boolean(
+    business && residentPhone &&
+    [business.phone, business.whatsapp].some((n) => String(n || '').replace(/\D/g, '').slice(-10) === residentPhone)
+  );
   useSocieties(); // re-render once the database society list loads (socOf/socShort below read it)
 
   useEffect(() => {
@@ -137,6 +145,7 @@ export default function BusinessPage() {
     toast(saved ? 'Removed from saved' : 'Saved. Find it under Saved.');
   }
   function onContact(type) {
+    if (isOwnListing) return;
     if (isRemote) {
       recordContact(business.id, type);
     } else {
@@ -153,13 +162,15 @@ export default function BusinessPage() {
     }
   }
   function onReveal() {
+    if (isOwnListing) return;
     setRevealed(true);
     if (isRemote) recordContact(business.id, 'reveal');
     else dispatch(recordEvent({ type: 'reveal', id: business.id }));
   }
   const contactProps = {
     phone,
-    canReveal: business.hidePhone !== false && !revealed,
+    canReveal: business.hidePhone !== false && !revealed && !isOwnListing,
+    disabled: isOwnListing,
     onReveal,
     onContact
   };
@@ -279,12 +290,6 @@ export default function BusinessPage() {
 
           <aside className="flex flex-col gap-3 md:gap-6">
             <ContactCard {...contactProps} className="hidden lg:block" />
-            <Panel title="Location">
-              <div className="h-24 md:h-36 rounded-xl md:rounded-2xl bg-primary-fixed flex items-center justify-center text-primary">
-                <Icon name="pin" className="text-3xl md:text-4xl" />
-              </div>
-              <p className="font-body-sm text-body-sm text-on-surface-variant mt-2.5 md:mt-3">{business.area}, {s.name}, {s.place}. Exact flat shared only after you enquire.</p>
-            </Panel>
             <Panel title="Send an enquiry" id="enquiry">
               <EnquiryForm businessId={business.id} isRemote={isRemote} />
             </Panel>
@@ -297,7 +302,7 @@ export default function BusinessPage() {
 
 /** Phone + WhatsApp/Call/Enquire, grouped in one card. Rendered twice by BusinessPage (under the
  *  hero below lg, top of the aside at lg+) with only one visible at a time. */
-function ContactCard({ phone, canReveal, onReveal, onContact, className = '' }) {
+function ContactCard({ phone, canReveal, disabled = false, onReveal, onContact, className = '' }) {
   return (
     <Panel title="Get in touch" className={className}>
       <div className="flex items-center justify-between gap-3 mb-3 md:mb-4">
@@ -313,17 +318,20 @@ function ContactCard({ phone, canReveal, onReveal, onContact, className = '' }) 
           </button>
         )}
       </div>
-      <WhatsAppButton onClick={() => onContact('whatsapp')} label="Chat on WhatsApp" className="w-full h-11 md:h-12 font-label-md md:font-label-lg text-label-md md:text-label-lg" />
+      <WhatsAppButton onClick={() => onContact('whatsapp')} label="Chat on WhatsApp" disabled={disabled} className="w-full h-11 md:h-12 font-label-md md:font-label-lg text-label-md md:text-label-lg" />
       <div className="grid grid-cols-2 gap-2 mt-2">
-        <CallButton onClick={() => onContact('call')} label="Call" className="h-11 font-label-md text-label-md" />
+        <CallButton onClick={() => onContact('call')} label="Call" disabled={disabled} className="h-11 font-label-md text-label-md" />
         <a
-          href="#enquiry"
-          className="inline-flex items-center justify-center gap-2 h-11 rounded-full border-2 border-outline-variant/60 text-on-surface font-label-md text-label-md font-semibold hover:border-primary hover:text-primary active:scale-[0.97] transition-all"
+          href={disabled ? undefined : '#enquiry'}
+          aria-disabled={disabled}
+          className={`inline-flex items-center justify-center gap-2 h-11 rounded-full border-2 border-outline-variant/60 text-on-surface font-label-md text-label-md font-semibold transition-all ${disabled ? 'opacity-50 pointer-events-none' : 'hover:border-primary hover:text-primary active:scale-[0.97]'}`}
         >
           <Icon name="mail" className="text-lg" /><span>Enquire</span>
         </a>
       </div>
-      <p className="font-body-sm text-body-sm text-on-surface-variant mt-3">Numbers stay hidden until you ask. Tapping Call or WhatsApp records a contact attempt.</p>
+      <p className="font-body-sm text-body-sm text-on-surface-variant mt-3">
+        {disabled ? 'This is your own listing, so contact actions are turned off here.' : 'Numbers stay hidden until you ask. Tapping Call or WhatsApp records a contact attempt.'}
+      </p>
     </Panel>
   );
 }

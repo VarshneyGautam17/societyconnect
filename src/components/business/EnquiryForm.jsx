@@ -28,7 +28,7 @@ export default function EnquiryForm({ businessId, isRemote = false }) {
       return;
     }
     const trimmedName = name.trim().slice(0, 100);
-    const trimmedMsg = msg.trim().slice(0, 1000);
+    const trimmedMsg = msg.trim().slice(0, 500);
     if (!trimmedName || !trimmedMsg) {
       setError('Please add your name and a short message.');
       return;
@@ -80,7 +80,7 @@ export default function EnquiryForm({ businessId, isRemote = false }) {
           onChange={(e) => setMsg(e.target.value)}
           rows={3}
           placeholder="What would you like to know?"
-          maxLength={1000}
+          maxLength={500}
           className="block w-full mt-2 rounded-2xl border border-outline-variant px-4 py-3 font-body-md text-body-md focus:border-primary focus:outline-none"
         />
       </label>
