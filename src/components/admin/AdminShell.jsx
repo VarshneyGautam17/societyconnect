@@ -8,7 +8,8 @@ import Icon from '@/components/ui/Icon';
 const LINKS = [
   { href: '/admin', label: 'Dashboard', icon: 'grid', exact: true },
   { href: '/admin/vendors', label: 'Vendor requests', icon: 'check' },
-  { href: '/admin/businesses', label: 'All businesses', icon: 'storefront' }
+  { href: '/admin/businesses', label: 'All businesses', icon: 'storefront' },
+  { href: '/admin/data', label: 'Raw data', icon: 'database' }
 ];
 
 export default function AdminShell({ email, children }) {
