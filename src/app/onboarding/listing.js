@@ -27,9 +27,9 @@ function formatMobile(value) {
 function cleanItems(items) {
   if (!Array.isArray(items)) return [];
   return items
-    .filter((r) => Array.isArray(r) && line(r[0], 120))
+    .filter((r) => Array.isArray(r) && line(r[0], 60))
     .slice(0, 30)
-    .map((r) => [line(r[0], 120), line(r[1], 200), line(r[2], 40) || 'On request']);
+    .map((r) => [line(r[0], 60), line(r[1], 200), line(r[2], 40) || 'On request']);
 }
 
 function cleanHours(hours) {
@@ -41,7 +41,7 @@ function cleanHours(hours) {
 }
 
 export async function submitListing(v) {
-  const name = line(v?.name, 120);
+  const name = line(v?.name, 80);
   const slug = slugify(v?.slug);
   const whatsapp = formatMobile(v?.whatsapp);
   const phone = formatMobile(v?.phone) || whatsapp;
@@ -87,7 +87,7 @@ export async function submitListing(v) {
     cat: v.cat,
     society,
     served,
-    area: line(v?.area, 120),
+    area: line(v?.area, 60),
     desc: text(v?.desc, 500),
     phone,
     whatsapp,

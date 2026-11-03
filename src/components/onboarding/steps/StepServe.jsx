@@ -31,7 +31,7 @@ export default function StepServe({ draft, patch, errors, checking }) {
             onChange={(e) => patch({ societyName: e.target.value })}
             list="society-names"
             placeholder="e.g. Prestige Lakeside Habitat"
-            maxLength={120}
+            maxLength={80}
             autoComplete="off"
             className={cls('societyName')}
           />
@@ -46,7 +46,7 @@ export default function StepServe({ draft, patch, errors, checking }) {
               value={draft.area}
               onChange={(e) => patch({ area: e.target.value })}
               placeholder="e.g. Tower B"
-              maxLength={120}
+              maxLength={60}
               className={cls('area')}
             />
           </Field>

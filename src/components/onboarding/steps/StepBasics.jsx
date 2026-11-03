@@ -31,7 +31,7 @@ export default function StepBasics({ draft, patch, errors }) {
             value={draft.name}
             onChange={(e) => onNameChange(e.target.value)}
             placeholder="e.g. Annapurna Home Kitchen"
-            maxLength={120}
+            maxLength={80}
             className={`${inputCls} ${errors.name ? 'border-error' : 'border-outline-variant'}`}
           />
         </Field>

@@ -30,7 +30,7 @@ export async function verifyOnboardingOtp(phone, code) {
 /* Same society entered twice (maybe with a slightly different spelling or extra "The"/"CHS")?
    Match loosely on name, but only within the same city -- there's no coordinate to narrow a
    search radius with once geocoding is gone, so city is the next best anchor. */
-const COLUMNS = 'id, name, place, street, city, pincode, lat, lng, bg, fg';
+const COLUMNS = 'id, name, place, street, city, pincode, lat, lng, photo, bg, fg';
 
 const clean = (s, max) => String(s || '').replace(/\s+/g, ' ').trim().slice(0, max);
 const normName = (s) => String(s || '').toLowerCase().replace(/\b(the|society|apartments?|residency|chs|cghs)\b/g, '').replace(/[^a-z0-9]/g, '');
@@ -66,7 +66,7 @@ async function uniqueId(supabase, name, city) {
  *  `{ society: { id, name, place, street, city, pincode, lat, lng, bg, fg } }`, or `{ error,
  *  field? }` -- `field` names the input to highlight. */
 export async function resolveVendorSociety(input) {
-  const name = clean(input?.name, 120);
+  const name = clean(input?.name, 80);
   const street = clean(input?.street, 160);
   const city = clean(input?.city, 80);
   const pincode = String(input?.pincode || '').replace(/\D/g, '');

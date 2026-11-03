@@ -33,7 +33,7 @@ export default function StepOfferings({ draft, patch, errors }) {
                   value={r[0]}
                   onChange={(e) => updateItem(i, 0, e.target.value)}
                   placeholder="Item or service"
-                  maxLength={120}
+                  maxLength={60}
                   className="flex-[2_1_180px] min-h-[44px] rounded-2xl border border-outline-variant px-3.5 font-body-md text-body-md"
                 />
                 <input
