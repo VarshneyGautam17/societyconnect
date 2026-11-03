@@ -1,8 +1,17 @@
+'use client';
+
 import Link from 'next/link';
+import { useSelector } from 'react-redux';
 import Icon from '@/components/ui/Icon';
 import Reveal from '@/components/ui/Reveal';
 
 export default function VendorCTA() {
+  /* One listing per phone number (see businesses_one_per_owner_idx / the WhatsApp-number check
+     in submitListing, src/app/onboarding/listing.js) -- a vendor who already has one gets sent
+     to their dashboard here instead of back through onboarding, same as the header's CTA. */
+  const vendor = useSelector((state) => state.vendor.current);
+  const isVendor = Boolean(vendor && vendor.published);
+
   return (
     <section className="py-8 md:py-16 bg-surface">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
@@ -22,9 +31,9 @@ export default function VendorCTA() {
                 Reach more local customers and make your business easy to discover. Start with a free introductory period and showcase your skills to hundreds of gated community residents.
               </p>
               <div className="flex flex-wrap items-center gap-3 md:gap-4">
-                <Link href="/onboarding" className="inline-flex items-center gap-2 px-5 py-2.5 md:px-8 md:py-3.5 rounded-full bg-white text-on-surface font-label-md md:font-label-lg text-label-md md:text-label-lg font-bold hover:bg-surface-container-high shadow-lg active:scale-95 transition-all">
-                  <span>List your business</span>
-                  <span className="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-primary/10 text-primary">Free trial</span>
+                <Link href={isVendor ? '/dashboard' : '/onboarding'} className="inline-flex items-center gap-2 px-5 py-2.5 md:px-8 md:py-3.5 rounded-full bg-white text-on-surface font-label-md md:font-label-lg text-label-md md:text-label-lg font-bold hover:bg-surface-container-high shadow-lg active:scale-95 transition-all">
+                  <span>{isVendor ? 'Go to dashboard' : 'List your business'}</span>
+                  {!isVendor && <span className="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-primary/10 text-primary">Free trial</span>}
                 </Link>
                 <a href="#how-it-works" className="inline-flex items-center gap-2 px-4 py-2.5 md:px-6 md:py-3.5 rounded-full bg-white/10 hover:bg-white/20 text-white font-label-md md:font-label-lg text-label-md md:text-label-lg font-semibold transition-colors">
                   <Icon name="help_outline" className="text-sm" />

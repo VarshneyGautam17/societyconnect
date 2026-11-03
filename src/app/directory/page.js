@@ -28,6 +28,8 @@ function DirectoryContent() {
   const allBusinesses = useSelector(selectAllBusinesses);
   const loading = useSelector(selectListingsLoading);
   const savedIds = useSelector((state) => state.saved.ids);
+  const vendor = useSelector((state) => state.vendor.current);
+  const isVendor = Boolean(vendor && vendor.published);
   const societies = useSocieties();
   const societyOptions = useMemo(() => [{ value: 'all', label: 'All societies' }, ...societies.map((s) => ({ value: s.id, label: s.name }))], [societies]);
 
@@ -189,11 +191,11 @@ function DirectoryContent() {
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <Reveal className="bg-primary rounded-2xl md:rounded-3xl p-5 md:p-10 flex flex-wrap items-center justify-between gap-4 md:gap-6">
             <div>
-              <h2 className="font-headline-md text-label-lg md:text-headline-md text-white mb-1">Run a business in your society?</h2>
-              <p className="font-body-sm md:font-body-md text-body-sm md:text-body-md text-primary-fixed max-w-lg">List it free for the first 1 to 2 months and get found when neighbors search.</p>
+              <h2 className="font-headline-md text-label-lg md:text-headline-md text-white mb-1">{isVendor ? 'Manage your business listing' : 'Run a business in your society?'}</h2>
+              <p className="font-body-sm md:font-body-md text-body-sm md:text-body-md text-primary-fixed max-w-lg">{isVendor ? 'See your views, contacts and enquiries from your dashboard.' : 'List it free for the first 1 to 2 months and get found when neighbors search.'}</p>
             </div>
-            <Link href="/onboarding" className="inline-flex items-center gap-2 px-5 py-2.5 md:px-7 md:py-3.5 rounded-full bg-white text-primary font-label-md md:font-label-lg text-label-md md:text-label-lg font-bold hover:bg-surface-container-high shadow-lg active:scale-95 transition-all">
-              List your business
+            <Link href={isVendor ? '/dashboard' : '/onboarding'} className="inline-flex items-center gap-2 px-5 py-2.5 md:px-7 md:py-3.5 rounded-full bg-white text-primary font-label-md md:font-label-lg text-label-md md:text-label-lg font-bold hover:bg-surface-container-high shadow-lg active:scale-95 transition-all">
+              {isVendor ? 'Go to dashboard' : 'List your business'}
             </Link>
           </Reveal>
         </div>
