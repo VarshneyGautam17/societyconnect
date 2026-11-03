@@ -27,7 +27,7 @@ export default function Hero({ societyId, onSocietyChange, query, onQueryChange,
       <div className="absolute -top-24 -left-24 w-80 h-80 bg-primary-fixed/60 rounded-full blur-3xl pointer-events-none animate-blob-drift" />
       <div className="absolute top-1/3 -left-10 w-64 h-64 bg-secondary-fixed/50 rounded-full blur-3xl pointer-events-none animate-blob-drift-slow" />
       <div className="max-w-7xl mx-auto px-4 md:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-start">
           <div className="lg:col-span-7 flex flex-col items-start z-10">
             <div {...badgeReveal} className="hidden xs:inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass shadow-sm mb-6">
               <span className="w-2 h-2 rounded-full bg-tertiary animate-pulse" />
