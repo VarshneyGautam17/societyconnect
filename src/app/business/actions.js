@@ -21,7 +21,7 @@ const ACTION_TEXT = {
   whatsapp: 'A resident opened a WhatsApp chat with you',
   call: 'A resident tried to call you'
 };
-const COOLDOWN_MS = 10 * 60 * 1000;
+const COOLDOWN_MS = 24 * 60 * 60 * 1000;
 const ALERT_TYPES = ['reveal', 'whatsapp', 'call', 'enquiry'];
 
 async function recentlyNotified(supabase, businessId, visitorPhone) {
