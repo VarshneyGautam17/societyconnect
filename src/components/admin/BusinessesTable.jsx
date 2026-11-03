@@ -49,7 +49,19 @@ function Row({ business }) {
   }
 
   function onApprove() {
-    run(() => approveBusiness(business.id), `${business.name} approved and live.`);
+    run(async () => {
+      try {
+        await approveBusiness(business.id);
+      } catch (err) {
+        if (!/latitude|longitude/i.test(err.message || '')) throw err;
+        const socName = socOf(business.society).name;
+        const lat = Number(window.prompt(`${socName} has no map location yet. Enter its latitude (-90 to 90):`, ''));
+        if (!Number.isFinite(lat) || lat < -90 || lat > 90) throw new Error('Enter a valid latitude for this society (-90 to 90) before approving.');
+        const lng = Number(window.prompt(`Enter ${socName}'s longitude (-180 to 180):`, ''));
+        if (!Number.isFinite(lng) || lng < -180 || lng > 180) throw new Error('Enter a valid longitude for this society (-180 to 180) before approving.');
+        await approveBusiness(business.id, { lat, lng });
+      }
+    }, `${business.name} approved and live.`);
   }
 
   function onReject() {
@@ -71,26 +83,26 @@ function Row({ business }) {
   }
 
   return (
-    <tr className="border-t border-outline-variant/30">
-      <td className="py-3 pr-4">
+    <tr className="border-t border-outline-variant/20 even:bg-surface-container/40 hover:bg-primary-fixed/25 transition-colors">
+      <td className="py-3.5 pr-4 pl-4">
         <strong className="block font-label-lg text-label-lg text-on-surface">{business.name}</strong>
         <span className="font-body-sm text-body-sm text-on-surface-variant">{business.area}, {socOf(business.society).name}</span>
       </td>
-      <td className="py-3 pr-4 font-body-sm text-body-sm text-on-surface-variant whitespace-nowrap">{catOf(business.cat).name}</td>
-      <td className="py-3 pr-4">
+      <td className="py-3.5 pr-4 font-body-sm text-body-sm text-on-surface-variant whitespace-nowrap">{catOf(business.cat).name}</td>
+      <td className="py-3.5 pr-4">
         <span className={`font-label-sm text-label-sm font-bold px-2.5 py-1 rounded-full whitespace-nowrap ${STATUS_STYLE[business.status] || ''}`}>{STATUS_LABEL[business.status] || business.status}</span>
         {business.status === 'rejected' && business.rejection_reason && (
           <span className="block mt-1 max-w-[180px] font-body-sm text-body-sm text-on-surface-variant line-clamp-2" title={business.rejection_reason}>{business.rejection_reason}</span>
         )}
       </td>
-      <td className="py-3 pr-4 font-body-sm text-body-sm text-on-surface whitespace-nowrap">
+      <td className="py-3.5 pr-4 font-body-sm text-body-sm text-on-surface whitespace-nowrap tabular-nums">
         <strong className="font-label-md text-label-md text-on-surface">{business.views}</strong> views
         <span className="block text-on-surface-variant">{business.contacts} contacts</span>
       </td>
-      <td className="py-3 pr-4 font-body-sm text-body-sm text-on-surface-variant whitespace-nowrap">
+      <td className="py-3.5 pr-4 font-body-sm text-body-sm text-on-surface-variant whitespace-nowrap tabular-nums">
         {new Date(business.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
       </td>
-      <td className="py-3 pr-4">
+      <td className="py-3.5 pr-4">
         <div className="flex items-center gap-2 flex-wrap">
           {/* What an admin can do depends on where the listing is: a new submission gets
               approve/reject, a live one can be switched off and back on, a rejected one can
@@ -167,18 +179,18 @@ export default function BusinessesTable({ businesses }) {
       </div>
 
       <div className="bg-surface-container-lowest rounded-3xl border border-outline-variant/30 shadow-sm overflow-x-auto">
-        <table className="w-full min-w-[640px]">
+        <table className="w-full min-w-[640px] border-collapse">
           <thead>
             <tr className="text-left font-label-sm text-label-sm text-on-surface-variant">
-              <th className="py-3 px-4 font-semibold">Business</th>
-              <th className="py-3 px-4 font-semibold">Category</th>
-              <th className="py-3 px-4 font-semibold">Status</th>
-              <th className="py-3 px-4 font-semibold">Traffic</th>
-              <th className="py-3 px-4 font-semibold">Created</th>
-              <th className="py-3 px-4 font-semibold">Actions</th>
+              <th className="sticky top-0 z-10 bg-surface-container-lowest py-3 px-4 font-semibold uppercase tracking-wide border-b-2 border-outline-variant/40">Business</th>
+              <th className="sticky top-0 z-10 bg-surface-container-lowest py-3 px-4 font-semibold uppercase tracking-wide border-b-2 border-outline-variant/40">Category</th>
+              <th className="sticky top-0 z-10 bg-surface-container-lowest py-3 px-4 font-semibold uppercase tracking-wide border-b-2 border-outline-variant/40">Status</th>
+              <th className="sticky top-0 z-10 bg-surface-container-lowest py-3 px-4 font-semibold uppercase tracking-wide border-b-2 border-outline-variant/40">Traffic</th>
+              <th className="sticky top-0 z-10 bg-surface-container-lowest py-3 px-4 font-semibold uppercase tracking-wide border-b-2 border-outline-variant/40">Created</th>
+              <th className="sticky top-0 z-10 bg-surface-container-lowest py-3 px-4 font-semibold uppercase tracking-wide border-b-2 border-outline-variant/40">Actions</th>
             </tr>
           </thead>
-          <tbody className="px-4">
+          <tbody>
             {filtered.map((b) => <Row key={b.id} business={b} />)}
           </tbody>
         </table>
