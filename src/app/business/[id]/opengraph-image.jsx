@@ -23,11 +23,11 @@ export const alt = 'SocietySpot business card';
 export const size = { width: 600, height: 315 };
 export const contentType = 'image/jpeg';
 
-const EMERALD = '#11543b';
-const EMERALD_DARK = '#072a1d';
-const BRASS = '#d2ae62';
-const BRASS_TEXT = '#2a1e04';
-const IVORY = '#faf8f2';
+const NAVY = '#10294a';
+const NAVY_DARK = '#081b33';
+const GREEN = '#178a4c';
+const GREEN_TEXT = '#0a4027';
+const PAPER = '#f6fafe';
 
 export default async function Image({ params }) {
   const { id } = await params;
@@ -50,17 +50,17 @@ export default async function Image({ params }) {
   let titleFontFamily = 'sans-serif';
   let bodyFontFamily = 'sans-serif';
   try {
-    const [fraunces700, manrope700, manrope500] = await Promise.all([
-      loadGoogleFont('Fraunces', 700, name + 'S'),
+    const [jakarta700, manrope700, manrope500] = await Promise.all([
+      loadGoogleFont('Plus Jakarta Sans', 700, name + 'S'),
       loadGoogleFont('Manrope', 700, manropeBoldText),
       loadGoogleFont('Manrope', 500, societyLine)
     ]);
     fonts = [
-      { name: 'Fraunces', data: fraunces700, weight: 700, style: 'normal' },
+      { name: 'Plus Jakarta Sans', data: jakarta700, weight: 700, style: 'normal' },
       { name: 'Manrope', data: manrope700, weight: 700, style: 'normal' },
       { name: 'Manrope', data: manrope500, weight: 500, style: 'normal' }
     ];
-    titleFontFamily = 'Fraunces';
+    titleFontFamily = 'Plus Jakarta Sans';
     bodyFontFamily = 'Manrope';
   } catch {
     /* Fall through with the generic family names set above. */
@@ -74,7 +74,7 @@ export default async function Image({ params }) {
           height: '100%',
           display: 'flex',
           position: 'relative',
-          backgroundColor: EMERALD_DARK,
+          backgroundColor: NAVY_DARK,
           fontFamily: bodyFontFamily
         }}
       >
@@ -94,7 +94,7 @@ export default async function Image({ params }) {
             position: 'absolute',
             inset: 0,
             display: 'flex',
-            background: `linear-gradient(180deg, ${EMERALD_DARK}00 0%, ${EMERALD_DARK}1a 35%, ${EMERALD_DARK}e6 78%, ${EMERALD_DARK} 100%)`
+            background: `linear-gradient(180deg, ${NAVY_DARK}00 0%, ${NAVY_DARK}1a 35%, ${NAVY_DARK}e6 78%, ${NAVY_DARK} 100%)`
           }}
         />
 
@@ -108,16 +108,16 @@ export default async function Image({ params }) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: IVORY,
+              backgroundColor: PAPER,
               fontFamily: titleFontFamily,
               fontSize: 16,
               fontWeight: 700,
-              color: EMERALD
+              color: NAVY
             }}
           >
             S
           </div>
-          <span style={{ fontSize: 15, fontWeight: 700, color: IVORY, letterSpacing: -0.25 }}>SocietySpot</span>
+          <span style={{ fontSize: 15, fontWeight: 700, color: PAPER, letterSpacing: -0.25 }}>SocietySpot</span>
         </div>
 
         {/* Category pill, top-right */}
@@ -131,8 +131,8 @@ export default async function Image({ params }) {
               alignItems: 'center',
               padding: '5px 11px',
               borderRadius: 999,
-              backgroundColor: BRASS,
-              color: BRASS_TEXT,
+              backgroundColor: GREEN,
+              color: GREEN_TEXT,
               fontSize: 12,
               fontWeight: 700
             }}
@@ -146,20 +146,20 @@ export default async function Image({ params }) {
           {business?.verified && (
             <div style={{ display: 'flex', gap: 6 }}>
               {business?.verified && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 9px', borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.16)', color: IVORY, fontSize: 10, fontWeight: 700 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 9px', borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.16)', color: PAPER, fontSize: 10, fontWeight: 700 }}>
                   {/* A plain coloured dot instead of a "✓" character -- a Unicode glyph the
                       fallback font (used if the Google Fonts request below fails) doesn't carry
                       would render as a tofu box instead of silently just not being there. */}
-                  <div style={{ width: 5, height: 5, borderRadius: 999, backgroundColor: '#8fd9b6', display: 'flex' }} />
+                  <div style={{ width: 5, height: 5, borderRadius: 999, backgroundColor: '#5fc98c', display: 'flex' }} />
                   Verified
                 </div>
               )}
             </div>
           )}
-          <span style={{ fontFamily: titleFontFamily, fontSize: 36, fontWeight: 700, color: IVORY, lineHeight: 1.05, letterSpacing: -0.75, maxWidth: 500 }}>
+          <span style={{ fontFamily: titleFontFamily, fontSize: 36, fontWeight: 700, color: PAPER, lineHeight: 1.05, letterSpacing: -0.75, maxWidth: 500 }}>
             {name}
           </span>
-          <span style={{ fontSize: 15, fontWeight: 500, color: 'rgba(250,248,242,0.85)' }}>{societyLine}</span>
+          <span style={{ fontSize: 15, fontWeight: 500, color: 'rgba(246,250,254,0.85)' }}>{societyLine}</span>
         </div>
       </div>
     ),
@@ -174,7 +174,7 @@ export default async function Image({ params }) {
     /* The PNG has no transparency, but sharp still needs an explicit background to flatten
        against when it drops the alpha channel for JPEG -- matches the canvas's own base colour
        so there's no edge artifact if a future layout change ever leaves a sliver unpainted. */
-    .flatten({ background: EMERALD_DARK })
+    .flatten({ background: NAVY_DARK })
     .jpeg({ quality: 92, mozjpeg: true })
     .toBuffer();
 
