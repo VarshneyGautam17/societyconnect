@@ -4,7 +4,8 @@ import AdminShell from '@/components/admin/AdminShell';
 
 /* Gates every /admin/* route. Membership in the `admins` table is the only
    thing that grants access -- see supabase/README.md for how that is granted
-   (by hand, via the SQL Editor; there is no self-service path). */
+   (by hand, via the SQL Editor; there is no self-service path). noindex for the whole /admin
+   surface (this route and /admin/login) lives in the parent src/app/admin/layout.js. */
 export default async function AdminLayout({ children }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

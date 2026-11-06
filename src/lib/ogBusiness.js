@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { catOf } from '@/data/categories';
 import { socOf } from '@/data/societies';
@@ -5,13 +6,16 @@ import { bizImg } from '@/lib/images';
 import { stripRichText } from '@/lib/richText';
 import { isUuid } from '@/lib/slugify';
 
-/** Server-only lookup shared by the business page's generateMetadata (title/description) and
- *  its opengraph-image route (the share poster), so both agree on what a given :id resolves to
- *  without duplicating the listing lookup business/[id]/page.js does client-side for the page
- *  itself. Uses the plain anon Supabase client (no cookies/session needed) since this only ever
- *  reads a public, already-approved listing -- RLS (see supabase/schema.sql) enforces that even
- *  if the `status` filter below were ever removed. */
-export async function getBusinessForOg(id) {
+/** Server-only lookup shared by the business page's generateMetadata (title/description), its
+ *  structured-data layout (JSON-LD, same file), and its opengraph-image route (the share
+ *  poster), so all three agree on what a given :id resolves to without duplicating the listing
+ *  lookup business/[id]/page.js does client-side for the page itself. Wrapped in React's `cache`
+ *  so the up-to-three calls those make for the same request dedupe into one Supabase round trip
+ *  (see https://react.dev/reference/react/cache -- this isn't a `fetch()` call, so Next's own
+ *  automatic fetch memoization doesn't apply here). Uses the plain anon Supabase client (no
+ *  cookies/session needed) since this only ever reads a public, already-approved listing -- RLS
+ *  (see supabase/schema.sql) enforces that even if the `status` filter below were ever removed. */
+export const getBusinessForOg = cache(async function getBusinessForOg(id) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return null;
@@ -27,12 +31,19 @@ export async function getBusinessForOg(id) {
   const { data: society } = await supabase.from('societies').select('id, name, place, lat, lng, bg, fg').eq('id', data.society).maybeSingle();
 
   return {
+    id: data.id,
+    slug: data.slug || '',
     name: data.name,
     desc: stripRichText(data.desc),
     cat: catOf(data.cat),
     society: society || socOf(data.society),
     area: data.area,
     verified: data.verified,
+    /* Structured data should never surface what the UI itself keeps behind a "show number" tap
+       -- see the `canReveal`/`hidePhone` handling in business/[id]/page.js. Only exposed here
+       when the vendor opted to make it always-public. */
+    telephone: data.hide_phone === false ? data.phone : null,
+    offer: data.offer,
     imageUrl: bizImg({ id: data.id, cat: data.cat, banner: data.banner, photos: data.photos }, 600, 315)
   };
-}
+});
