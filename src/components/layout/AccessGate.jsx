@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { unlockAccess } from '@/store/slices/accessSlice';
 import { sendLoginOtp, verifyLoginOtp } from '@/app/access/actions';
 import Icon from '@/components/ui/Icon';
+import { useToast } from '@/components/ui/Toast';
 
 const RESEND_SECONDS = 30;
 /* Off until the WhatsApp login template is approved -- set NEXT_PUBLIC_ACCESS_GATE_ENABLED=true
@@ -18,6 +19,7 @@ const GATE_ENABLED = process.env.NEXT_PUBLIC_ACCESS_GATE_ENABLED === 'true';
  *  Zomato/Swiggy present this kind of entry step. */
 export default function AccessGate() {
   const dispatch = useDispatch();
+  const toast = useToast();
   const unlocked = useSelector((state) => state.access.unlocked);
   const [step, setStep] = useState('phone');
   const [phone, setPhone] = useState('');
@@ -74,6 +76,7 @@ export default function AccessGate() {
       return;
     }
     dispatch(unlockAccess(res.phone));
+    toast(res.returning ? 'Welcome back! This number is already on SocietySpot.' : "You're verified. Welcome to SocietySpot.");
   }
 
   function changeNumber() {

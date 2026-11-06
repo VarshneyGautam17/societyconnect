@@ -2,11 +2,15 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useSelector } from 'react-redux';
+import { useRouter } from 'next/navigation';
+import { useDispatch, useSelector } from 'react-redux';
 import { socLabel } from '@/data/societies';
 import { useSocieties } from '@/lib/societies';
 import Icon from '@/components/ui/Icon';
 import { useHideOnScroll } from '@/lib/useHideOnScroll';
+import { useToast } from '@/components/ui/Toast';
+import { signOutResident } from '@/app/access/actions';
+import { lockAccess } from '@/store/slices/accessSlice';
 
 const NAV = [
   { href: '/', label: 'Home', key: 'home' },
@@ -16,19 +20,41 @@ const NAV = [
 
 export default function Header({ active, minimal = false }) {
   const [open, setOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const scrolledDown = useHideOnScroll();
   const hidden = scrolledDown && !open;
+  const dispatch = useDispatch();
+  const router = useRouter();
+  const toast = useToast();
   const vendor = useSelector((state) => state.vendor.current);
   const societyId = useSelector((state) => state.society.selectedId);
+  const residentUnlocked = useSelector((state) => state.access.unlocked);
   const vendorLink = vendor && vendor.published ? '/dashboard' : '/onboarding';
   const vendorLabel = vendor && vendor.published ? 'My dashboard' : 'List your business';
   const societies = useSocieties();
 
+  /* Clears the resident session everywhere it lives: the DB row (so a copied cookie can't keep
+     working), the httpOnly cookie, and the locally-cached redux/localStorage copy -- so the
+     access gate asks for a fresh WhatsApp OTP on the very next visit, same as a brand-new
+     visitor. router.refresh() re-runs the current route's data so any already-rendered gated
+     content is dropped immediately, not just left on screen until the next navigation. */
+  async function handleSignOut() {
+    setSigningOut(true);
+    await signOutResident().catch(() => {});
+    dispatch(lockAccess());
+    setSigningOut(false);
+    toast('Signed out. Verify your number again to see businesses.');
+    router.refresh();
+  }
+
   const brand = (
     <Link href="/" className="flex items-center gap-1.5 md:gap-2 group flex-none">
-      <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-primary flex items-center justify-center text-on-primary shadow-sm group-hover:scale-105 transition-transform flex-none">
-        <Icon name="pin" className="text-base md:text-xl" filled />
-      </div>
+      {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset, no next/image config needed */}
+      <img
+        src="/brand/logo-mark.png"
+        alt=""
+        className="w-8 h-8 md:w-10 md:h-10 rounded-full shadow-sm group-hover:scale-105 transition-transform flex-none"
+      />
       <span className="font-headline-sm text-label-lg md:text-headline-sm text-primary tracking-tight whitespace-nowrap">SocietySpot</span>
     </Link>
   );
@@ -87,6 +113,18 @@ export default function Header({ active, minimal = false }) {
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3 flex-none">
+          {residentUnlocked && (
+            <button
+              type="button"
+              onClick={handleSignOut}
+              disabled={signingOut}
+              title="Sign out"
+              aria-label="Sign out"
+              className="flex items-center justify-center h-9 w-9 md:h-10 md:w-10 rounded-full border border-outline-variant/40 text-on-surface-variant hover:text-primary hover:border-primary transition-colors flex-none disabled:opacity-60"
+            >
+              <Icon name="logout" className="text-lg" />
+            </button>
+          )}
           <Link
             href={vendorLink}
             className="hidden xs:inline-flex items-center gap-2 bg-primary text-on-primary font-label-lg text-label-lg font-semibold px-4 xl:px-5 py-2.5 rounded-full shadow-sm hover:shadow-md hover:bg-primary-container active:scale-[0.98] transition-all whitespace-nowrap"

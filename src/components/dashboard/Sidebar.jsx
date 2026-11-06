@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import MonoTile from '@/components/ui/MonoTile';
-import Icon from '@/components/ui/Icon';
 
 const LINKS = [
   { href: '/dashboard', label: 'Overview', active: true },
@@ -17,7 +16,8 @@ export default function Sidebar({ vendor, live, onSoonClick }) {
   return (
     <aside className="bg-surface-container-lowest border-b lg:border-b-0 lg:border-r border-outline-variant/40 p-4 lg:p-5 flex lg:flex-col items-center lg:items-stretch gap-4 lg:gap-5 overflow-x-auto">
       <Link href="/" className="hidden lg:flex items-center gap-2 px-2">
-        <span className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary"><Icon name="pin" className="text-base" filled /></span>
+        {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset, no next/image config needed */}
+        <img src="/brand/logo-mark.png" alt="" className="w-8 h-8 rounded-full" />
         <span className="font-headline-sm text-headline-sm text-primary tracking-tight">SocietySpot</span>
       </Link>
       <nav className="flex lg:flex-col gap-1 flex-none" aria-label="Vendor navigation">

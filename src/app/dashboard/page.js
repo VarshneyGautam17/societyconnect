@@ -131,7 +131,7 @@ export default function DashboardPage() {
       <main className="p-5 md:p-8 flex flex-col gap-6 min-w-0 max-w-[1180px]">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="font-headline-lg text-headline-md text-on-surface tracking-tight">Namaste, {vendor.name.split(' ')[0]}</h1>
+            <h1 className="font-headline-lg text-headline-md text-on-surface tracking-tight">Namaste, {vendor.name}</h1>
             <p className="font-body-md text-body-md text-on-surface-variant mt-1">
               {status === 'approved' ? 'Your business page is live. Here is how it is doing.' : 'Here is where your listing stands.'}
             </p>

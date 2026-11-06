@@ -28,6 +28,12 @@ export async function verifyLoginOtp(phone, code) {
   if (verified.error) return verified;
 
   const supabase = createServiceRoleClient();
+  /* Checked before the upsert below so a returning number (one that already logged in before,
+     any time in the past -- not just "still has a live session") can be told apart from a
+     first-ever signup, for the "welcome back" toast. */
+  const { data: existing } = await supabase.from('residents').select('id').eq('phone', phone).maybeSingle();
+  const returning = !!existing;
+
   const { data: resident, error: residentError } = await supabase
     .from('residents')
     .upsert({ phone, last_login_at: new Date().toISOString() }, { onConflict: 'phone' })
@@ -55,7 +61,23 @@ export async function verifyLoginOtp(phone, code) {
     expires: expiresAt
   });
 
-  return { ok: true, phone };
+  return { ok: true, phone, returning };
+}
+
+/** Signs the current resident out: deletes the session row server-side (not just the cookie,
+ *  so a copied/leaked token stops working too) and clears the cookie. A phone number that signs
+ *  out is still in `residents` (it's a permanent record of who has ever verified), but with no
+ *  live session it has to clear the WhatsApp OTP gate again on its next visit -- this function
+ *  never skips that check, it only ever removes access. */
+export async function signOutResident() {
+  const store = await cookies();
+  const token = store.get(SESSION_COOKIE)?.value;
+  if (token) {
+    const supabase = createServiceRoleClient();
+    await supabase.from('resident_sessions').delete().eq('token_hash', sha256(token));
+  }
+  store.delete(SESSION_COOKIE);
+  return { ok: true };
 }
 
 /** The signed-in resident's phone, or null. Called on every app load to confirm the

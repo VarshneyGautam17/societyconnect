@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Icon from '@/components/ui/Icon';
 
 /** `tabBarSpace`: pages with the fixed MobileTabBar pass this so the room it needs below the last
  *  footer row is footer-colored padding, not a page-background strip -- the tab bar hides on
@@ -10,9 +9,8 @@ export default function Footer({ tabBarSpace = false }) {
       <div className="w-full py-6 md:py-12 px-4 md:px-8 max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-5 md:gap-8">
         <div className="max-w-sm">
           <div className="flex items-center gap-2 mb-2.5 md:mb-3">
-            <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-primary flex items-center justify-center text-on-primary">
-              <Icon name="pin" className="text-sm" filled />
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset, no next/image config needed */}
+            <img src="/brand/logo-mark.png" alt="" className="w-7 h-7 md:w-8 md:h-8 rounded-full" />
             <span className="font-headline-sm text-label-lg md:text-headline-sm font-bold text-on-surface">SocietySpot</span>
           </div>
           <p className="font-body-sm text-body-sm text-on-surface-variant mb-3 md:mb-4">
