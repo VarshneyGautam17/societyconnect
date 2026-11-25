@@ -191,6 +191,7 @@ export default function OnboardingPage() {
       setChecking(false);
       if (trusted) {
         patch({ otpSent: false, otp: '' });
+        toast('This number is already verified on this device. Skipping the code and taking you to the next step.');
         setStep(1);
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
@@ -329,8 +330,8 @@ export default function OnboardingPage() {
                   <WizardFoot
                     nextLabel={
                       checking
-                        ? (step === 0 ? (draft.otpSent ? 'Verifying...' : 'Sending code...') : 'Checking address...')
-                        : step === 0 ? (draft.otpSent ? 'Verify and continue' : 'Send code') : step === 3 ? 'Preview my page' : 'Continue'
+                        ? (step === 0 ? (draft.otpSent ? 'Verifying...' : 'Checking number...') : 'Checking address...')
+                        : step === 0 ? (draft.otpSent ? 'Verify and continue' : 'Continue') : step === 3 ? 'Preview my page' : 'Continue'
                     }
                     busy={checking}
                     hideBack={step === 0}
