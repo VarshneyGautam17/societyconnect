@@ -82,6 +82,7 @@ export default function OnboardingPage() {
   const [justPublished, setJustPublished] = useState(false);
   const [checking, setChecking] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   useEffect(() => {
     /* localStorage only exists in the browser, so this one-time hydration has to happen post-mount
@@ -155,6 +156,11 @@ export default function OnboardingPage() {
     return true;
   }
 
+  async function onConfirmSend() {
+    setConfirmOpen(false);
+    await sendCode();
+  }
+
   async function onSubmit(e) {
     e.preventDefault();
     if (checking) return;
@@ -176,7 +182,8 @@ export default function OnboardingPage() {
     const nextErrors = validateStep(step, draft);
     if (Object.keys(nextErrors).length) { setErrors(nextErrors); return; }
     if (step === 0) {
-      await sendCode();
+      setErrors({});
+      setConfirmOpen(true);
       return;
     }
     if (step === 2 && !(await verifyAddress())) return;
@@ -338,6 +345,20 @@ export default function OnboardingPage() {
         )}
       </main>
       <Footer />
+      {confirmOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setConfirmOpen(false)}>
+          <div role="dialog" aria-modal="true" aria-labelledby="confirm-phone-title" onClick={(e) => e.stopPropagation()} className="w-full max-w-sm bg-surface-container-lowest rounded-3xl p-6 shadow-xl border border-outline-variant/30">
+            <h2 id="confirm-phone-title" className="font-headline-sm text-headline-sm text-on-surface mb-2">Confirm your number</h2>
+            <p className="font-body-md text-body-md text-on-surface-variant mb-1">We&apos;ll send a 6-digit code on WhatsApp to:</p>
+            <p className="font-headline-sm text-headline-sm text-on-surface tabular-nums mb-3">+91 {draft.phone.slice(0, 5)} {draft.phone.slice(5)}</p>
+            <p className="font-body-sm text-body-sm text-on-surface-variant mb-5">Is this correct? If not, go back and fix it before we send.</p>
+            <div className="flex flex-wrap gap-3 justify-end">
+              <button type="button" onClick={() => setConfirmOpen(false)} className="px-5 py-2.5 rounded-full border border-outline-variant text-on-surface font-label-lg text-label-lg font-semibold hover:border-primary hover:text-primary transition-colors">Edit number</button>
+              <button type="button" autoFocus onClick={onConfirmSend} className="px-5 py-2.5 rounded-full bg-primary text-on-primary font-label-lg text-label-lg font-semibold hover:bg-primary-container shadow-sm transition-colors">Yes, send code</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

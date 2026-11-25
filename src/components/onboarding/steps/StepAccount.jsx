@@ -8,12 +8,15 @@ export default function StepAccount({ draft, patch, errors, checking, onResend }
         <Field label="Mobile number" error={errors.phone} hint="We'll send a 6-digit code on WhatsApp to verify it's really you.">
           <input
             value={draft.phone}
-            onChange={(e) => patch({ phone: e.target.value.replace(/\D/g, '') })}
+            onChange={(e) => {
+              const phone = e.target.value.replace(/\D/g, '').slice(0, 10);
+              /* A changed number invalidates any code already sent to the old one. */
+              patch(phone === draft.phone ? { phone } : { phone, otpSent: false, otp: '' });
+            }}
             inputMode="numeric"
             maxLength={10}
-            placeholder="10-digit mobile number"
-            disabled={draft.otpSent}
-            className={`${inputCls} ${errors.phone ? 'border-error' : 'border-outline-variant'} disabled:opacity-60`}
+            placeholder="e.g. 9876543210 (10 digits, no +91)"
+            className={`${inputCls} ${errors.phone ? 'border-error' : 'border-outline-variant'}`}
           />
         </Field>
         {draft.otpSent && (
