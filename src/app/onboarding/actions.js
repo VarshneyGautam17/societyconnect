@@ -3,13 +3,25 @@
 import { createServiceRoleClient } from '@/lib/supabase/serviceRole';
 import { societyColors } from '@/data/societies';
 import { slugify } from '@/lib/slugify';
-import { sendOtp, verifyOtp } from '@/lib/otp';
+import { sendOtp, verifyOtp, isValidPhone } from '@/lib/otp';
+import { getResidentSession } from '@/app/access/actions';
 
 /** Verifies the vendor actually controls the mobile number they're onboarding with, using the
  *  same WhatsApp OTP flow (and the same approved template) as resident login -- see
  *  src/lib/otp.js. No session/cookie comes out of this (onboarding doesn't need one; the
  *  listing itself stays unauthenticated, see submitListing in listing.js), it just confirms the
  *  number before step 1. */
+/** True when this browser already holds a live resident session for `phone` -- i.e. this exact
+ *  device already passed the WhatsApp OTP for that number -- so onboarding can skip a second,
+ *  paid code. Deliberately tied to the session cookie, not just "the number exists in the
+ *  database": anyone can type someone else's number, so a bare DB match must never count as
+ *  proof of ownership. */
+export async function checkOnboardingPhone(phone) {
+  if (!isValidPhone(phone)) return { verified: false };
+  const session = await getResidentSession();
+  return { verified: session?.phone === phone };
+}
+
 export async function sendOnboardingOtp(phone) {
   return sendOtp(phone, 'onboarding');
 }

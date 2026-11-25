@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { emptyVendor } from '@/data/businesses';
 import { publishVendor, setVendor } from '@/store/slices/vendorSlice';
 import { upsertSociety } from '@/data/societies';
-import { resolveVendorSociety, sendOnboardingOtp, verifyOnboardingOtp } from '@/app/onboarding/actions';
+import { checkOnboardingPhone, resolveVendorSociety, sendOnboardingOtp, verifyOnboardingOtp } from '@/app/onboarding/actions';
 import { submitListing } from '@/app/onboarding/listing';
 import { storageGet, storageSet } from '@/lib/storage';
 import { useToast } from '@/components/ui/Toast';
@@ -183,6 +183,18 @@ export default function OnboardingPage() {
     if (Object.keys(nextErrors).length) { setErrors(nextErrors); return; }
     if (step === 0) {
       setErrors({});
+      setChecking(true);
+      let trusted = false;
+      try {
+        trusted = (await checkOnboardingPhone(draft.phone)).verified;
+      } catch { /* fall through to a normal code */ }
+      setChecking(false);
+      if (trusted) {
+        patch({ otpSent: false, otp: '' });
+        setStep(1);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
       setConfirmOpen(true);
       return;
     }
