@@ -1,9 +1,33 @@
 /** Renders one database table's rows exactly as stored -- every declared column, in schema
  *  order, even where every row happens to be null for it. Used by /admin/data to show admins
  *  the raw backend data (as opposed to the curated views on /admin/vendors and /admin/businesses). */
+const ISO_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/;
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const TZ = 'Asia/Kolkata';
+
+function formatDateTime(text) {
+  const d = new Date(text);
+  if (Number.isNaN(d.getTime())) return text;
+  const date = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: TZ });
+  const time = d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: TZ });
+  return `${date}, ${time.toUpperCase()}`;
+}
+
+function formatDate(text) {
+  const d = new Date(`${text}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return text;
+  return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+}
+
 function cell(value) {
   if (value === null || value === undefined || value === '') return <span className="text-on-surface-variant/50">—</span>;
   if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+  if (typeof value === 'string' && ISO_TIMESTAMP.test(value)) return <span title={value}>{formatDateTime(value)}</span>;
+  if (typeof value === 'string' && ISO_DATE.test(value)) return <span title={value}>{formatDate(value)}</span>;
+  if (Array.isArray(value) && value.every((v) => typeof v === 'string' || typeof v === 'number')) {
+    const joined = value.join(', ');
+    return joined.length > 60 ? <span title={joined} className="cursor-help">{joined.slice(0, 60)}…</span> : joined;
+  }
   if (Array.isArray(value) || typeof value === 'object') {
     const json = JSON.stringify(value);
     const short = json.length > 60 ? `${json.slice(0, 60)}…` : json;
